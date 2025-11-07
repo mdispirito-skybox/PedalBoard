@@ -6,19 +6,28 @@ MainComponent::MainComponent()
     toneLabel.setText("Tone", juce::dontSendNotification);
     volumeLabel.setText("Volume", juce::dontSendNotification);
 
-    for (auto* label : { &gainLabel, &toneLabel, &volumeLabel })
-        addAndMakeVisible(label);
+    addAndMakeVisible(gainLabel);
+    addAndMakeVisible(toneLabel);
+    addAndMakeVisible(volumeLabel);
 
-    for (auto* slider : { &gainSlider, &toneSlider, &volumeSlider })
-    {
-        slider->setRange(0.0, 10.0, 0.01);
-        slider->setValue(2.0);
-        slider->addListener(this);
-        addAndMakeVisible(slider);
-    }
+    // Sliders
+    gainSlider.setRange(0.0, 10.0, 0.01);
+    gainSlider.setValue(2.0);
+    gainSlider.addListener(this);
+    addAndMakeVisible(gainSlider);
+
+    toneSlider.setRange(0.0, 1.0, 0.001);
+    toneSlider.setValue(0.5);
+    toneSlider.addListener(this);
+    addAndMakeVisible(toneSlider);
+
+    volumeSlider.setRange(0.0, 1.0, 0.001);
+    volumeSlider.setValue(0.8);
+    volumeSlider.addListener(this);
+    addAndMakeVisible(volumeSlider);
 
     setSize(400, 200);
-    setAudioChannels(2, 2); // stereo input/output
+    setAudioChannels(2, 2); // stereo input/output //TODO need to make this mono in, stereo out.
 }
 
 MainComponent::~MainComponent()
@@ -56,7 +65,7 @@ void MainComponent::resized()
     volumeSlider.setBounds(area.removeFromTop(sliderHeight));
 }
 
-void MainComponent::sliderValueChanged(juce::Slider* slider)
+void MainComponent::sliderValueChanged(juce::Slider* slider) // TODO. I think it'll make more sense to change with some type of helper function. Pass in an object and then have the slider be a property of the object
 {
     if (slider == &gainSlider)
         amp.setGain((float)slider->getValue());
