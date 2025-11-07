@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Point this to your JUCE folder
-add_subdirectory(JUCE)
+add_subdirectory(libs/JUCE)
 
 juce_add_executable(GuitarAmpSim
     PRODUCT_NAME "Big Mike's PedalBoard"
