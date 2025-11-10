@@ -27,7 +27,7 @@ MainComponent::MainComponent()
     addAndMakeVisible(volumeSlider);
 
     setSize(400, 200);
-    setAudioChannels(2, 2); // stereo input/output //TODO need to make this mono in, stereo out.
+    setAudioChannels(1, 2); // mono in, stereo out
 }
 
 MainComponent::~MainComponent()
