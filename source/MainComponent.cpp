@@ -58,19 +58,19 @@ void MainComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate
     transportSource.prepareToPlay(samplesPerBlockExpected, sampleRate);
 }
 
-void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill)
-{
+void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill) {
+    if (isMuted.load()) {
+        bufferToFill.buffer->clear();
+        return;
+    }
+
     if (fileInputToggle.getToggleState() && transportSource.isPlaying()) {
         transportSource.getNextAudioBlock(bufferToFill);
     } else {
-        // Get the single mono input channel
         const float* inputData = bufferToFill.buffer->getReadPointer(0);
-
-        // Get the two stereo output channels
         float* outputDataLeft = bufferToFill.buffer->getWritePointer(0);
         float* outputDataRight = bufferToFill.buffer->getWritePointer(1);
 
-        // Copy the mono input to both left and right output channels
         for (int i = 0; i < bufferToFill.numSamples; ++i) {
             outputDataLeft[i] = inputData[i];
             outputDataRight[i] = inputData[i];
@@ -78,10 +78,6 @@ void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffer
     }
 
     amp.process(*bufferToFill.buffer);
-
-    if (isMuted.load()) {
-        bufferToFill.buffer->clear();
-    }
 }
 
 void MainComponent::releaseResources() 
