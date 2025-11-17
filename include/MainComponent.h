@@ -23,23 +23,24 @@ public:
     void buttonClicked(juce::Button* button) override; // <-- 3. Declare button handler
 
 private:
-    // ... existing amp, sliders, and labels
+    // --- Amp Parameters ---
     AmpSimProcessor amp;
-
     juce::Slider gainSlider, toneSlider, volumeSlider;
     juce::Label gainLabel, toneLabel, volumeLabel;
 
-    // --- 4. Add new members for file playback ---
+    // --- General UI  ---
     juce::TextButton openButton;
     juce::ToggleButton fileInputToggle;
+    juce::ToggleButton muteButton;
 
+    // --- General Audio Management ---
     juce::AudioFormatManager formatManager;
     std::unique_ptr<juce::AudioFormatReaderSource> readerSource;
     juce::AudioTransportSource transportSource;
     std::unique_ptr<juce::FileChooser> fileChooser;
+    std::atomic<bool> isMuted { false };
 
-
-    void openFile(); // <-- 5. Add a helper function to open the file
+    void openFile();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };

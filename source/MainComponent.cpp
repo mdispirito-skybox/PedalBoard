@@ -10,7 +10,7 @@ MainComponent::MainComponent()
     addAndMakeVisible(toneLabel);
     addAndMakeVisible(volumeLabel);
 
-    // Sliders
+    // Amp Sliders
     gainSlider.setRange(0.0, 10.0, 0.01);
     gainSlider.setValue(2.0);
     gainSlider.addListener(this);
@@ -35,10 +35,16 @@ MainComponent::MainComponent()
     fileInputToggle.setButtonText("Use File Input");
     fileInputToggle.addListener(this);
 
+    addAndMakeVisible(muteButton);
+    muteButton.setButtonText("PANIC");
+    muteButton.setClickingTogglesState(true);
+    muteButton.setToggleState(isMuted.load(), juce::dontSendNotification);
+    muteButton.addListener(this);
+
     formatManager.registerBasicFormats();
 
     setSize(400, 300);
-    setAudioChannels(1, 2); // mono in, stereo out
+    setAudioChannels(1, 2);
 }
 
 MainComponent::~MainComponent()
@@ -54,19 +60,9 @@ void MainComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate
 
 void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill)
 {
-    // Check if we are using the file input
-    if (fileInputToggle.getToggleState() && transportSource.isPlaying())
-    {
-        // 1. Get audio from the file transport.
-        // This fills bufferToFill.buffer (2 channels) with file audio.
-        // It automatically handles mono-to-stereo if the file is mono.
+    if (fileInputToggle.getToggleState() && transportSource.isPlaying()) {
         transportSource.getNextAudioBlock(bufferToFill);
-    }
-    else
-    {
-        // 2. Handle live mic input (Mono In -> Stereo Out)
-        // This runs because we called setAudioChannels(1, 2)
-
+    } else {
         // Get the single mono input channel
         const float* inputData = bufferToFill.buffer->getReadPointer(0);
 
@@ -75,16 +71,17 @@ void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffer
         float* outputDataRight = bufferToFill.buffer->getWritePointer(1);
 
         // Copy the mono input to both left and right output channels
-        for (int i = 0; i < bufferToFill.numSamples; ++i)
-        {
+        for (int i = 0; i < bufferToFill.numSamples; ++i) {
             outputDataLeft[i] = inputData[i];
             outputDataRight[i] = inputData[i];
         }
     }
 
-    // 3. Process the audio (either from file or live mic)
-    // The buffer is now stereo, so amp.process() will process both channels[cite: 54].
     amp.process(*bufferToFill.buffer);
+
+    if (isMuted.load()) {
+        bufferToFill.buffer->clear();
+    }
 }
 
 void MainComponent::releaseResources() 
@@ -101,11 +98,14 @@ void MainComponent::resized()
 {
     auto area = getLocalBounds().reduced(20);
 
+    // --- General UI ---
     auto buttonArea = area.removeFromTop(40);
-    openButton.setBounds(buttonArea.removeFromLeft(buttonArea.getWidth() / 2).reduced(5));
-    fileInputToggle.setBounds(buttonArea.reduced(5));
+    openButton.setBounds(buttonArea.removeFromLeft(buttonArea.getWidth() / 3).reduced(5));
+    fileInputToggle.setBounds(buttonArea.removeFromLeft(buttonArea.getWidth() / 2).reduced(5));
+    muteButton.setBounds(buttonArea.reduced(5));
     area.removeFromTop(20);
 
+    // --- Amp UI ---
     auto sliderHeight = 40;
     gainLabel.setBounds(area.removeFromTop(sliderHeight / 2));
     gainSlider.setBounds(area.removeFromTop(sliderHeight));
@@ -127,16 +127,17 @@ void MainComponent::sliderValueChanged(juce::Slider* slider) // TODO. I think it
 
 void MainComponent::buttonClicked(juce::Button* button)
 {
-    if (button == &openButton)
-    {
+    if (button == &openButton) {
         openFile();
     }
-    else if (button == &fileInputToggle)
-    {
-        if (fileInputToggle.getToggleState())
+    else if (button == &fileInputToggle) {
+        if (fileInputToggle.getToggleState()) {
             transportSource.start();
-        else
+        } else {
             transportSource.stop();
+        }
+    } else if (button == &muteButton) {
+        isMuted.store(muteButton.getToggleState());
     }
 }
 
