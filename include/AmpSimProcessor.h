@@ -1,5 +1,6 @@
 #pragma once
 #include <atomic>
+#include <array>
 #include "juce_audio_basics/juce_audio_basics.h"
 
 class AmpSimProcessor
@@ -25,7 +26,7 @@ private:
     std::atomic<float> volume { 0.8f };
 
     double fs = 44100.0;
-    juce::IIRFilter toneFilter;
+    std::array<juce::IIRFilter, 2> toneFilters;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AmpSimProcessor)
 };

@@ -3,9 +3,10 @@
 void AmpSimProcessor::prepare(double sampleRate)
 {
     fs = sampleRate > 0.0 ? sampleRate : 44100.0;
-    toneFilter.reset();
-    // initialize with default tone
-    toneFilter.setCoefficients(juce::IIRCoefficients::makeHighShelf(fs, 1200.0, 0.707, tone.load()));
+    for (auto& filter : toneFilters) {
+        filter.reset();
+        filter.setCoefficients(juce::IIRCoefficients::makeHighShelf(fs, 1200.0, 0.707, tone.load()));
+    }
 }
 
 void AmpSimProcessor::process(juce::AudioBuffer<float>& buffer)
@@ -18,20 +19,19 @@ void AmpSimProcessor::process(juce::AudioBuffer<float>& buffer)
     const float vol = volume.load();
 
     // Update tone filter coefficients once per block (cheap)
-    toneFilter.setCoefficients(juce::IIRCoefficients::makeHighShelf(fs, 1200.0, 0.707, t));
+    auto newCoefficients = juce::IIRCoefficients::makeHighShelf(fs, 1200.0, 0.707, t);
 
-    for (int ch = 0; ch < numChannels; ++ch)
-    {
+    for (int ch = 0; ch < numChannels; ++ch) {
+        toneFilters[ch].setCoefficients(newCoefficients);
+
         auto* data = buffer.getWritePointer(ch);
 
-        for (int i = 0; i < numSamples; ++i)
-        {
+        for (int i = 0; i < numSamples; ++i) {
             float x = data[i] * g;       // preamp gain
             x = std::tanh(x);            // soft clipping (tube-like)
             data[i] = x * vol;           // output volume
         }
 
-        // apply tone filter per channel
-        toneFilter.processSamples(data, numSamples);
+        toneFilters[ch].processSamples(data, numSamples);
     }
 }
