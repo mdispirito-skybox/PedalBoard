@@ -36,7 +36,7 @@ MainComponent::MainComponent()
     fileInputToggle.addListener(this);
 
     addAndMakeVisible(muteButton);
-    muteButton.setButtonText("PANIC");
+    muteButton.setButtonText("MUTE");
     muteButton.setClickingTogglesState(true);
     muteButton.setToggleState(isMuted.load(), juce::dontSendNotification);
     muteButton.addListener(this);
