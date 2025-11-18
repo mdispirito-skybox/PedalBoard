@@ -30,6 +30,7 @@ private:
 
     // --- General UI  ---
     juce::TextButton openButton;
+    juce::TextButton settingsButton;
     juce::ToggleButton fileInputToggle;
     juce::ToggleButton muteButton;
 

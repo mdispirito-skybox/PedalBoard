@@ -41,9 +41,13 @@ MainComponent::MainComponent()
     muteButton.setToggleState(isMuted.load(), juce::dontSendNotification);
     muteButton.addListener(this);
 
+    addAndMakeVisible(settingsButton);
+    settingsButton.setButtonText("Audio Settings...");
+    settingsButton.addListener(this);
+
     formatManager.registerBasicFormats();
 
-    setSize(400, 300);
+    setSize(400, 350);
     setAudioChannels(1, 2);
 }
 
@@ -95,10 +99,14 @@ void MainComponent::resized()
     auto area = getLocalBounds().reduced(20);
 
     // --- General UI ---
-    auto buttonArea = area.removeFromTop(40);
-    openButton.setBounds(buttonArea.removeFromLeft(buttonArea.getWidth() / 3).reduced(5));
-    fileInputToggle.setBounds(buttonArea.removeFromLeft(buttonArea.getWidth() / 2).reduced(5));
-    muteButton.setBounds(buttonArea.reduced(5));
+    auto topButtonArea = area.removeFromTop(40);
+    openButton.setBounds(topButtonArea.removeFromLeft(topButtonArea.getWidth() / 3).reduced(5));
+    fileInputToggle.setBounds(topButtonArea.removeFromLeft(topButtonArea.getWidth() / 2).reduced(5));
+    muteButton.setBounds(topButtonArea.reduced(5));
+    area.removeFromTop(5);
+
+    auto settingsArea = area.removeFromTop(30);
+    settingsButton.setBounds(settingsArea.withWidth(140).withCentre(settingsArea.getCentre()));
     area.removeFromTop(20);
 
     // --- Amp UI ---
@@ -134,6 +142,21 @@ void MainComponent::buttonClicked(juce::Button* button)
         }
     } else if (button == &muteButton) {
         isMuted.store(muteButton.getToggleState());
+    } else if (button = &settingsButton) {
+        auto* settingsPanel = new juce::AudioDeviceSelectorComponent(deviceManager, 
+          0, 2, 0, 2, //Input & Output Channels
+          false, false, // showMidi
+          true,  // showChannelsAsStereoPairs
+          false); // showAdvancedOptions
+
+        settingsPanel->setSize(400, 300);
+
+        juce::DialogWindow::LaunchOptions o;
+        o.content.setOwned(settingsPanel);
+        o.dialogTitle = "Audio Settings";
+        o.resizable = false;
+        o.dialogBackgroundColour = juce::Colours::darkgrey;
+        o.launchAsync();
     }
 }
 
