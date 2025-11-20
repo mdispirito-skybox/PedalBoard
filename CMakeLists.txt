@@ -17,6 +17,7 @@ target_sources(GuitarAmpSim PRIVATE
     Source/Main.cpp
     Source/MainComponent.cpp
     Source/AmpSimProcessor.cpp
+    Source/CabSimProcessor.cpp
 )
 
 target_include_directories(GuitarAmpSim PRIVATE include)
@@ -29,4 +30,5 @@ target_link_libraries(GuitarAmpSim PRIVATE
     juce::juce_audio_utils
     juce::juce_gui_basics
     juce::juce_gui_extra
+    juce::juce_dsp
 )
