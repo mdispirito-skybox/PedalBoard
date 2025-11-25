@@ -1,7 +1,6 @@
 #include "MainComponent.h"
 
-MainComponent::MainComponent()
-{
+MainComponent::MainComponent() {
     gainLabel.setText("Gain", juce::dontSendNotification);
     toneLabel.setText("Tone", juce::dontSendNotification);
     volumeLabel.setText("Volume", juce::dontSendNotification);
@@ -26,6 +25,17 @@ MainComponent::MainComponent()
     volumeSlider.addListener(this);
     addAndMakeVisible(volumeSlider);
 
+    // --- Cab UI ---
+    addAndMakeVisible(loadIRButton);
+    loadIRButton.setButtonText("Load IR File...");
+    loadIRButton.addListener(this);
+
+    addAndMakeVisible(cabToggle);
+    cabToggle.setButtonText("Cab Sim ON");
+    cabToggle.setClickingTogglesState(true);
+    cabToggle.setToggleState(true, juce::dontSendNotification); // Start ON by default
+    cabToggle.addListener(this);
+
     // --- Audio Playback ---
     addAndMakeVisible(openButton);
     openButton.setButtonText("Open Audio File...");
@@ -47,18 +57,17 @@ MainComponent::MainComponent()
 
     formatManager.registerBasicFormats();
 
-    setSize(400, 350);
+    setSize(400, 380);
     setAudioChannels(1, 2);
 }
 
-MainComponent::~MainComponent()
-{
+MainComponent::~MainComponent(){
     shutdownAudio();
 }
 
-void MainComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
-{
+void MainComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate) {
     amp.prepare(sampleRate);
+    cab.prepare(sampleRate, samplesPerBlockExpected, 2);
     transportSource.prepareToPlay(samplesPerBlockExpected, sampleRate);
 }
 
@@ -82,29 +91,34 @@ void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffer
     }
 
     amp.process(*bufferToFill.buffer);
+    cab.process(*bufferToFill.buffer);
 }
 
-void MainComponent::releaseResources() 
-{
+void MainComponent::releaseResources() {
   transportSource.releaseResources();
 }
 
-void MainComponent::paint(juce::Graphics& g)
-{
+void MainComponent::paint(juce::Graphics& g) {
     g.fillAll(juce::Colours::darkgrey);
 }
 
-void MainComponent::resized()
-{
+void MainComponent::resized() {
     auto area = getLocalBounds().reduced(20);
-
-    // --- General UI ---
+    
+    // --- Row 1: File/Mute controls ---
     auto topButtonArea = area.removeFromTop(40);
     openButton.setBounds(topButtonArea.removeFromLeft(topButtonArea.getWidth() / 3).reduced(5));
     fileInputToggle.setBounds(topButtonArea.removeFromLeft(topButtonArea.getWidth() / 2).reduced(5));
     muteButton.setBounds(topButtonArea.reduced(5));
     area.removeFromTop(5);
 
+    // --- Row 2: Cab Sim Controls ---
+    auto cabControlsArea = area.removeFromTop(40);
+    loadIRButton.setBounds(cabControlsArea.removeFromLeft(cabControlsArea.getWidth() / 2).reduced(5));
+    cabToggle.setBounds(cabControlsArea.reduced(5));
+    area.removeFromTop(5);
+
+    // --- Row 3: Settings ---
     auto settingsArea = area.removeFromTop(30);
     settingsButton.setBounds(settingsArea.withWidth(140).withCentre(settingsArea.getCentre()));
     area.removeFromTop(20);
@@ -157,52 +171,35 @@ void MainComponent::buttonClicked(juce::Button* button)
         o.resizable = false;
         o.dialogBackgroundColour = juce::Colours::darkgrey;
         o.launchAsync();
+    } else if (button == &cabToggle) {
+        cab.setBypassed(!cabToggle.getToggleState());
+    } else if (button == &loadIRButton) {
+        loadIR();
     }
 }
 
 void MainComponent::openFile()
 {
-    // Stop any current playback
     transportSource.stop();
-
-    // Reset and launch the file chooser
-    fileChooser = std::make_unique<juce::FileChooser>("Select an audio file to play...",
-                                                      juce::File{},
-                                                      "*.wav;*.aif;*.aiff;*.flac");
-
+    fileChooser = std::make_unique<juce::FileChooser>("Select an audio file to play...",juce::File{},"*.wav;*.aif;*.aiff;*.flac");
     auto flags = juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles;
-
-    fileChooser->launchAsync(flags, [this](const juce::FileChooser& fc)
-    {
-        // This code block runs *after* the user closes the file dialog
+    fileChooser->launchAsync(flags, [this](const juce::FileChooser& fc) {
         auto file = fc.getResult();
-
-        if (file != juce::File{}) // Check if the user actually selected a file
-        {
+        if (file != juce::File{}) {
             auto* reader = formatManager.createReaderFor(file);
-
-            if (reader != nullptr)
-            {
-                // Create a new reader source
+            if (reader != nullptr) {
                 auto newSource = std::make_unique<juce::AudioFormatReaderSource>(reader, true);
-                
-                // Set the transport source to use this new reader
                 transportSource.setSource(newSource.get(), 0, nullptr, reader->sampleRate);
-                
-                // Enable looping
                 transportSource.setLooping(true);
-                
-                // Store the reader source
                 readerSource.reset(newSource.release());
-
-                // Auto-enable and start playback
                 fileInputToggle.setToggleState(true, juce::dontSendNotification);
                 transportSource.start();
             }
         }
-        
-        // When this lambda finishes, the fileChooser unique_ptr is still held
-        // by MainComponent, but the native window will be gone.
-        // It will be reset the next time openFile() is called.
     });
+}
+
+void MainComponent::loadIR() {
+    // This is where we will implement the file chooser and background loading logic
+    // We'll tackle this in the next step.
 }

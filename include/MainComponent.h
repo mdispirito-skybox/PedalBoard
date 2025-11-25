@@ -1,12 +1,13 @@
 #pragma once
 #include "AmpSimProcessor.h"
+#include "CabSimProcessor.h"
 #include "juce_audio_utils/juce_audio_utils.h"
 #include "juce_gui_basics/juce_gui_basics.h"
-#include "juce_audio_formats/juce_audio_formats.h" // <-- 1. Include audio formats
+#include "juce_audio_formats/juce_audio_formats.h"
 
 class MainComponent : public juce::AudioAppComponent,
                       public juce::Slider::Listener,
-                      public juce::Button::Listener  // <-- 2. Inherit from Button::Listener
+                      public juce::Button::Listener
 {
 public:
     MainComponent();
@@ -20,13 +21,19 @@ public:
     void resized() override;
 
     void sliderValueChanged(juce::Slider* slider) override;
-    void buttonClicked(juce::Button* button) override; // <-- 3. Declare button handler
+    void buttonClicked(juce::Button* button) override;
 
 private:
-    // --- Amp Parameters ---
     AmpSimProcessor amp;
+    CabSimProcessor cab;
+
+    // --- Amp Parameters ---
     juce::Slider gainSlider, toneSlider, volumeSlider;
     juce::Label gainLabel, toneLabel, volumeLabel;
+    
+    // --- Cab Parameters ---
+    juce::TextButton loadIRButton;
+    juce::ToggleButton cabToggle;
 
     // --- General UI  ---
     juce::TextButton openButton;
@@ -42,6 +49,7 @@ private:
     std::atomic<bool> isMuted { false };
 
     void openFile();
+    void loadIR();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };
