@@ -200,6 +200,17 @@ void MainComponent::openFile()
 }
 
 void MainComponent::loadIR() {
-    // This is where we will implement the file chooser and background loading logic
-    // We'll tackle this in the next step.
+    transportSource.stop(); // TODO Is this necessary? Come back to this later.
+
+    fileChooser = std::make_unique<juce::FileChooser>("Select an Impulse Response (IR) File...",juce::File{},"*.wav;*.aif;*.aiff");
+    auto flags = juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles;
+    fileChooser->launchAsync(flags, [this](const juce::FileChooser& fc) {
+        auto file = fc.getResult();
+        if (file != juce::File{}) {
+            // We successfully selected a file. 
+            // The actual background loading logic will go here in the next step.
+            
+            juce::Logger::writeToLog("IR selected: " + file.getFullPathName());
+        }
+    });
 }
