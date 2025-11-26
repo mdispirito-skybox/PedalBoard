@@ -1,4 +1,5 @@
 #include "MainComponent.h"
+#include "BinaryData.h"
 
 MainComponent::MainComponent() {
     gainLabel.setText("Gain", juce::dontSendNotification);
@@ -35,6 +36,13 @@ MainComponent::MainComponent() {
     cabToggle.setClickingTogglesState(true);
     cabToggle.setToggleState(true, juce::dontSendNotification); // Start ON by default
     cabToggle.addListener(this);
+
+    addAndMakeVisible(irSelector);
+    irSelector.addItem("ORANGE", 1);
+    irSelector.addItem("VOX", 2);
+    irSelector.onChange = [this] { loadEmbeddedIR(irSelector.getSelectedId()); };
+    
+    irSelector.setSelectedId(2);
 
     // --- Audio Playback ---
     addAndMakeVisible(openButton);
@@ -113,10 +121,10 @@ void MainComponent::resized() {
     area.removeFromTop(5);
 
     // --- Row 2: Cab Sim Controls ---
-    auto cabControlsArea = area.removeFromTop(40);
-    loadIRButton.setBounds(cabControlsArea.removeFromLeft(cabControlsArea.getWidth() / 2).reduced(5));
-    cabToggle.setBounds(cabControlsArea.reduced(5));
-    area.removeFromTop(5);
+    auto cabArea = area.removeFromTop(40);
+    loadIRButton.setBounds(cabArea.removeFromLeft(cabArea.getWidth() / 3).reduced(5));
+    irSelector.setBounds(cabArea.removeFromLeft(cabArea.getWidth() / 2).reduced(5));
+    cabToggle.setBounds(cabArea.reduced(5));
 
     // --- Row 3: Settings ---
     auto settingsArea = area.removeFromTop(30);
@@ -211,4 +219,33 @@ void MainComponent::loadIR() {
             juce::Logger::writeToLog("Loaded IR: " + file.getFileName());
         }
     });
+}
+
+void MainComponent::loadEmbeddedIR(int index) {
+    const char* data = nullptr;
+    int dataSize = 0;
+
+    switch (index) {
+        case 1:
+            data = BinaryData::VOX_wav;
+            dataSize = BinaryData::VOX_wavSize;
+            break;
+        case 2:
+            data = BinaryData::ORANGE_wav;
+            dataSize = BinaryData::ORANGE_wavSize;
+            break;
+        default:
+            return;
+    }
+
+    // Standard loading logic (same as before, but from memory stream)
+    auto stream = std::make_unique<juce::MemoryInputStream>(data, dataSize, false);
+    std::unique_ptr<juce::AudioFormatReader> reader(formatManager.createReaderFor(std::move(stream)));
+
+    if (reader != nullptr) {
+        juce::AudioBuffer<float> rawIRBuffer((int)reader->numChannels, (int)reader->lengthInSamples);
+        reader->read(&rawIRBuffer, 0, (int)reader->lengthInSamples, 0, true, true);
+        cab.loadImpulseResponse(std::move(rawIRBuffer), reader->sampleRate);
+
+    }
 }

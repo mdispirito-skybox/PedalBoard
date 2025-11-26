@@ -13,6 +13,12 @@ juce_add_gui_app(GuitarAmpSim
     ICON_SMALL ""
 )
 
+juce_add_binary_data(GuitarAmpSimAssets
+    SOURCES
+        Resources/ORANGE.wav
+        Resources/VOX.wav
+)
+
 target_sources(GuitarAmpSim PRIVATE
     Source/Main.cpp
     Source/MainComponent.cpp
@@ -31,4 +37,5 @@ target_link_libraries(GuitarAmpSim PRIVATE
     juce::juce_gui_basics
     juce::juce_gui_extra
     juce::juce_dsp
+    GuitarAmpSimAssets
 )

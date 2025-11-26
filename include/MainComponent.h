@@ -34,6 +34,7 @@ private:
     // --- Cab Parameters ---
     juce::TextButton loadIRButton;
     juce::ToggleButton cabToggle;
+    juce::ComboBox irSelector;
 
     // --- General UI  ---
     juce::TextButton openButton;
@@ -50,6 +51,7 @@ private:
 
     void openFile();
     void loadIR();
+    void loadEmbeddedIR(int index);
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };
