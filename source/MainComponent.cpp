@@ -192,17 +192,23 @@ void MainComponent::openFile()
 }
 
 void MainComponent::loadIR() {
-    transportSource.stop(); // TODO Is this necessary? Come back to this later.
-
-    fileChooser = std::make_unique<juce::FileChooser>("Select an Impulse Response (IR) File...",juce::File{},"*.wav;*.aif;*.aiff");
+    transportSource.stop(); // TODO Why do we need to stop the audio while loading a new IR?
+    fileChooser = std::make_unique<juce::FileChooser>("Select an Impulse Response (IR) File...", juce::File{}, "*.wav;*.aif;*.aiff");
     auto flags = juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles;
+
     fileChooser->launchAsync(flags, [this](const juce::FileChooser& fc) {
         auto file = fc.getResult();
-        if (file != juce::File{}) {
-            // We successfully selected a file. 
-            // The actual background loading logic will go here in the next step.
-            
-            juce::Logger::writeToLog("IR selected: " + file.getFullPathName());
+        if (file == juce::File{}) {
+            return;
+        }
+
+        std::unique_ptr<juce::AudioFormatReader> reader(formatManager.createReaderFor(file));
+
+        if (reader != nullptr) {
+            juce::AudioBuffer<float> rawIRBuffer((int)reader->numChannels, (int)reader->lengthInSamples);
+            reader->read(&rawIRBuffer, 0, (int)reader->lengthInSamples, 0, true, true);
+            cab.loadImpulseResponse(std::move(rawIRBuffer), reader->sampleRate);
+            juce::Logger::writeToLog("Loaded IR: " + file.getFileName());
         }
     });
 }
