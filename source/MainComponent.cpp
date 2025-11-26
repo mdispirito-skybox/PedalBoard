@@ -5,10 +5,12 @@ MainComponent::MainComponent() {
     gainLabel.setText("Gain", juce::dontSendNotification);
     toneLabel.setText("Tone", juce::dontSendNotification);
     volumeLabel.setText("Volume", juce::dontSendNotification);
+    presenceLabel.setText("Presence", juce::dontSendNotification);
 
     addAndMakeVisible(gainLabel);
     addAndMakeVisible(toneLabel);
     addAndMakeVisible(volumeLabel);
+    addAndMakeVisible(presenceLabel);
 
     // Amp Sliders
     gainSlider.setRange(0.0, 10.0, 0.01);
@@ -20,6 +22,11 @@ MainComponent::MainComponent() {
     toneSlider.setValue(0.5);
     toneSlider.addListener(this);
     addAndMakeVisible(toneSlider);
+
+    presenceSlider.setRange(0.0, 1.0, 0.001);
+    presenceSlider.setValue(0.5);
+    presenceSlider.addListener(this);
+    addAndMakeVisible(presenceSlider);
 
     volumeSlider.setRange(0.0, 1.0, 0.001);
     volumeSlider.setValue(0.8);
@@ -65,7 +72,7 @@ MainComponent::MainComponent() {
 
     formatManager.registerBasicFormats();
 
-    setSize(400, 380);
+    setSize(400, 460);
     setAudioChannels(1, 2);
 }
 
@@ -133,22 +140,28 @@ void MainComponent::resized() {
 
     // --- Amp UI ---
     auto sliderHeight = 40;
+    
     gainLabel.setBounds(area.removeFromTop(sliderHeight / 2));
     gainSlider.setBounds(area.removeFromTop(sliderHeight));
     toneLabel.setBounds(area.removeFromTop(sliderHeight / 2));
     toneSlider.setBounds(area.removeFromTop(sliderHeight));
+    presenceLabel.setBounds(area.removeFromTop(sliderHeight / 2));
+    presenceSlider.setBounds(area.removeFromTop(sliderHeight));
     volumeLabel.setBounds(area.removeFromTop(sliderHeight / 2));
     volumeSlider.setBounds(area.removeFromTop(sliderHeight));
 }
 
 void MainComponent::sliderValueChanged(juce::Slider* slider) // TODO. I think it'll make more sense to change with some type of helper function. Pass in an object and then have the slider be a property of the object
 {
-    if (slider == &gainSlider)
+    if (slider == &gainSlider) {
         amp.setGain((float)slider->getValue());
-    else if (slider == &toneSlider)
+    } else if (slider == &toneSlider) {
         amp.setTone((float)slider->getValue());
-    else if (slider == &volumeSlider)
+    } else if (slider == &presenceSlider) {
+        amp.setPresence((float)slider->getValue());
+    } else if (slider == &volumeSlider) {
         amp.setVolume((float)slider->getValue());
+    }
 }
 
 void MainComponent::buttonClicked(juce::Button* button) {
