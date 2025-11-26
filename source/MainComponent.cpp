@@ -143,26 +143,22 @@ void MainComponent::sliderValueChanged(juce::Slider* slider) // TODO. I think it
         amp.setVolume((float)slider->getValue());
 }
 
-void MainComponent::buttonClicked(juce::Button* button)
-{
-    if (button == &openButton) {
+void MainComponent::buttonClicked(juce::Button* button) {
+if (button == &openButton) {
         openFile();
-    }
-    else if (button == &fileInputToggle) {
-        if (fileInputToggle.getToggleState()) {
+    } else if (button == &fileInputToggle) {
+        if (fileInputToggle.getToggleState())
             transportSource.start();
-        } else {
+        else
             transportSource.stop();
-        }
     } else if (button == &muteButton) {
         isMuted.store(muteButton.getToggleState());
-    } else if (button = &settingsButton) {
-        auto* settingsPanel = new juce::AudioDeviceSelectorComponent(deviceManager, 
-          0, 2, 0, 2, //Input & Output Channels
-          false, false, // showMidi
-          true,  // showChannelsAsStereoPairs
-          false); // showAdvancedOptions
-
+    } else if (button == &cabToggle) {
+        cab.setBypassed(!cabToggle.getToggleState());
+    } else if (button == &loadIRButton) {
+        loadIR();
+    } else if (button == &settingsButton) {
+        auto* settingsPanel = new juce::AudioDeviceSelectorComponent(deviceManager, 0, 0, 0, 2, false, false, true, false);
         settingsPanel->setSize(400, 300);
 
         juce::DialogWindow::LaunchOptions o;
@@ -171,10 +167,6 @@ void MainComponent::buttonClicked(juce::Button* button)
         o.resizable = false;
         o.dialogBackgroundColour = juce::Colours::darkgrey;
         o.launchAsync();
-    } else if (button == &cabToggle) {
-        cab.setBypassed(!cabToggle.getToggleState());
-    } else if (button == &loadIRButton) {
-        loadIR();
     }
 }
 
