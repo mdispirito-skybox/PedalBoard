@@ -151,8 +151,7 @@ void MainComponent::resized() {
     volumeSlider.setBounds(area.removeFromTop(sliderHeight));
 }
 
-void MainComponent::sliderValueChanged(juce::Slider* slider) // TODO. I think it'll make more sense to change with some type of helper function. Pass in an object and then have the slider be a property of the object
-{
+void MainComponent::sliderValueChanged(juce::Slider* slider) {
     if (slider == &gainSlider) {
         amp.setGain((float)slider->getValue());
     } else if (slider == &toneSlider) {
@@ -165,7 +164,7 @@ void MainComponent::sliderValueChanged(juce::Slider* slider) // TODO. I think it
 }
 
 void MainComponent::buttonClicked(juce::Button* button) {
-if (button == &openButton) {
+    if (button == &openButton) {
         openFile();
     } else if (button == &fileInputToggle) {
         if (fileInputToggle.getToggleState())
