@@ -51,6 +51,10 @@ MainComponent::MainComponent() {
     
     irSelector.setSelectedId(2);
 
+    // --- Meters ---
+    addAndMakeVisible(inputMeter);
+    addAndMakeVisible(outputMeter);
+
     // --- Audio Playback ---
     addAndMakeVisible(openButton);
     openButton.setButtonText("Open Audio File...");
@@ -72,11 +76,12 @@ MainComponent::MainComponent() {
 
     formatManager.registerBasicFormats();
 
-    setSize(400, 460);
+    setSize(450, 460);
     setAudioChannels(1, 2);
 }
 
 MainComponent::~MainComponent(){
+    stopTimer();
     shutdownAudio();
 }
 
@@ -105,8 +110,12 @@ void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffer
         }
     }
 
+    currentInputLevel.store(bufferToFill.buffer->getMagnitude(bufferToFill.startSample, bufferToFill.numSamples));
+
     amp.process(*bufferToFill.buffer);
     cab.process(*bufferToFill.buffer);
+
+    currentOutputLevel.store(bufferToFill.buffer->getMagnitude(bufferToFill.startSample, bufferToFill.numSamples));
 }
 
 void MainComponent::releaseResources() {
@@ -117,8 +126,21 @@ void MainComponent::paint(juce::Graphics& g) {
     g.fillAll(juce::Colours::darkgrey);
 }
 
+void MainComponent::timerCallback() {
+    inputMeter.setLevel(currentInputLevel.load());
+    outputMeter.setLevel(currentOutputLevel.load());
+}
+
 void MainComponent::resized() {
     auto area = getLocalBounds().reduced(20);
+
+    // Left side: Input Meter
+    inputMeter.setBounds(area.removeFromLeft(20));
+    area.removeFromLeft(10);
+
+    // Right side: Output Meter
+    outputMeter.setBounds(area.removeFromRight(20));
+    area.removeFromRight(10);
     
     // --- Row 1: File/Mute controls ---
     auto topButtonArea = area.removeFromTop(40);

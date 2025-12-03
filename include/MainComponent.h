@@ -5,9 +5,36 @@
 #include "juce_gui_basics/juce_gui_basics.h"
 #include "juce_audio_formats/juce_audio_formats.h"
 
+class LevelMeter : public juce::Component {
+public:
+    void paint(juce::Graphics& g) override {
+        g.fillAll(juce::Colours::black);
+        int height = (int)((float)getHeight() * level);
+        if (level > 0.9f) {
+            g.setColour(juce::Colours::red);
+        } else {
+            g.setColour(juce::Colours::green);
+        }
+        
+        g.fillRect(0, getHeight() - height, getWidth(), height);
+    }
+
+    void setLevel(float newLevel) {
+        if (newLevel > level) {
+            level = newLevel; 
+        } else {
+            level *= 0.9f;
+        } 
+        repaint();
+    }
+
+private:
+    float level = 0.0f;
+};
 class MainComponent : public juce::AudioAppComponent,
                       public juce::Slider::Listener,
-                      public juce::Button::Listener
+                      public juce::Button::Listener,
+                      public juce::Timer
 {
 public:
     MainComponent();
@@ -22,6 +49,8 @@ public:
 
     void sliderValueChanged(juce::Slider* slider) override;
     void buttonClicked(juce::Button* button) override;
+
+    void timerCallback() override;
 
 private:
     AmpSimProcessor amp;
@@ -41,6 +70,11 @@ private:
     juce::TextButton settingsButton;
     juce::ToggleButton fileInputToggle;
     juce::ToggleButton muteButton;
+
+    // --- Level Meters ---
+    LevelMeter inputMeter, outputMeter;
+    std::atomic<float> currentInputLevel { 0.0f };
+    std::atomic<float> currentOutputLevel { 0.0f };
 
     // --- General Audio Management ---
     juce::AudioFormatManager formatManager;
