@@ -26,7 +26,13 @@ target_sources(GuitarAmpSim PRIVATE
     Source/CabSimProcessor.cpp
 )
 
-target_include_directories(GuitarAmpSim PRIVATE include)
+target_include_directories(GuitarAmpSim PRIVATE 
+    include
+    libs/ASIOSDK/common)
+
+target_compile_definitions(GuitarAmpSim PRIVATE
+    JUCE_ASIO=1
+)
 
 target_link_libraries(GuitarAmpSim PRIVATE
     juce::juce_audio_basics
