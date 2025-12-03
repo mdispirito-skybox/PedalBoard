@@ -3,54 +3,52 @@
 
 void AmpSimProcessor::prepare(double sampleRate) {
     fs = sampleRate > 0.0 ? sampleRate : 44100.0;
-    for (auto& filter : toneFilters) {
-        filter.reset();
-        filter.setCoefficients(juce::IIRCoefficients::makeLowPass(fs, 5000.0f));
+
+    for (int i = 0; i < 2; ++i) {
+        preFilters[i].reset();
+        bassFilters[i].reset();
+        trebleFilters[i].reset();
+
+        preFilters[i].setCoefficients(juce::IIRCoefficients::makeHighPass(fs, 300.0f));
     }
 
-    for (auto& filter : presenceFilters) {
-        filter.reset();
-        filter.setCoefficients(juce::IIRCoefficients::makeHighShelf(fs, 3000.0f, 0.707f, 1.0f));
-    }
 }
 
 void AmpSimProcessor::process(juce::AudioBuffer<float>& buffer) {
     const int numChannels = buffer.getNumChannels();
     const int numSamples  = buffer.getNumSamples();
 
-    const float g   = gain.load();
-    const float t   = tone.load();
+    const float g   = gain.load() * 10.0f; 
+    const float b   = bass.load();
+    const float tr  = treble.load();
     const float vol = volume.load();
-    const float p   = presence.load();
 
-    float toneFreq = 500.0f + (t * 7500.0f);
-    auto toneCoeffs = juce::IIRCoefficients::makeLowPass(fs, toneFreq);
+    float bassGain = 0.5f + (b * 2.0f);
+    float trebGain = 0.5f + (tr * 2.0f);
 
-    float presenceGain = 1.0f + (p * 3.0f); 
-    auto presCoeffs = juce::IIRCoefficients::makeHighShelf(fs, 3000.0f, 0.707f, presenceGain);
+    auto bassCoeffs = juce::IIRCoefficients::makeLowShelf(fs, 150.0f, 0.707f, bassGain);
+    auto trebCoeffs = juce::IIRCoefficients::makeHighShelf(fs, 3500.0f, 0.707f, trebGain);
 
     for (int ch = 0; ch < numChannels; ++ch) {
-        toneFilters[ch].setCoefficients(toneCoeffs);
-        presenceFilters[ch].setCoefficients(presCoeffs);
-
+        bassFilters[ch].setCoefficients(bassCoeffs);
+        trebleFilters[ch].setCoefficients(trebCoeffs);
         auto* data = buffer.getWritePointer(ch);
 
+        preFilters[ch].processSamples(data, numSamples);
+
         for (int i = 0; i < numSamples; ++i) {
-            // --- STAGE 1: Pre-Gain ---
             float x = data[i] * g;
 
-            // --- STAGE 2: Asymmetric Soft Clipping (Tube Emulation) ---
             if (x > 0.0f) {
                 x = std::tanh(x); 
             } else {
                 x = std::tanh(x * 0.8f) / 0.8f; 
             }
-            // --- STAGE 3: Output Level ---
+
             data[i] = x * vol;
         }
-
-        // --- STAGE 4: EQ Stack ---
-        toneFilters[ch].processSamples(data, numSamples);
-        presenceFilters[ch].processSamples(data, numSamples);
+        
+        bassFilters[ch].processSamples(data, numSamples);
+        trebleFilters[ch].processSamples(data, numSamples);
     }
 }

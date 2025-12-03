@@ -3,30 +3,29 @@
 
 MainComponent::MainComponent() {
     gainLabel.setText("Gain", juce::dontSendNotification);
-    toneLabel.setText("Tone", juce::dontSendNotification);
+    bassLabel.setText("Bass", juce::dontSendNotification);
+    trebleLabel.setText("Treble", juce::dontSendNotification);
     volumeLabel.setText("Volume", juce::dontSendNotification);
-    presenceLabel.setText("Presence", juce::dontSendNotification);
 
     addAndMakeVisible(gainLabel);
-    addAndMakeVisible(toneLabel);
-    addAndMakeVisible(volumeLabel);
-    addAndMakeVisible(presenceLabel);
+    addAndMakeVisible(bassLabel);
+    addAndMakeVisible(trebleLabel);
 
     // Amp Sliders
     gainSlider.setRange(0.0, 10.0, 0.01);
-    gainSlider.setValue(2.0);
+    gainSlider.setValue(5.0);
     gainSlider.addListener(this);
     addAndMakeVisible(gainSlider);
 
-    toneSlider.setRange(0.0, 1.0, 0.001);
-    toneSlider.setValue(0.5);
-    toneSlider.addListener(this);
-    addAndMakeVisible(toneSlider);
+    bassSlider.setRange(0.0, 1.0, 0.001);
+    bassSlider.setValue(0.5);
+    bassSlider.addListener(this);
+    addAndMakeVisible(bassSlider);
 
-    presenceSlider.setRange(0.0, 1.0, 0.001);
-    presenceSlider.setValue(0.5);
-    presenceSlider.addListener(this);
-    addAndMakeVisible(presenceSlider);
+    trebleSlider.setRange(0.0, 1.0, 0.001);
+    trebleSlider.setValue(0.5);
+    trebleSlider.addListener(this);
+    addAndMakeVisible(trebleSlider);
 
     volumeSlider.setRange(0.0, 1.0, 0.001);
     volumeSlider.setValue(0.8);
@@ -140,13 +139,12 @@ void MainComponent::resized() {
 
     // --- Amp UI ---
     auto sliderHeight = 40;
-    
     gainLabel.setBounds(area.removeFromTop(sliderHeight / 2));
     gainSlider.setBounds(area.removeFromTop(sliderHeight));
-    toneLabel.setBounds(area.removeFromTop(sliderHeight / 2));
-    toneSlider.setBounds(area.removeFromTop(sliderHeight));
-    presenceLabel.setBounds(area.removeFromTop(sliderHeight / 2));
-    presenceSlider.setBounds(area.removeFromTop(sliderHeight));
+    bassLabel.setBounds(area.removeFromTop(sliderHeight / 2));
+    bassSlider.setBounds(area.removeFromTop(sliderHeight));
+    trebleLabel.setBounds(area.removeFromTop(sliderHeight / 2));
+    trebleSlider.setBounds(area.removeFromTop(sliderHeight));
     volumeLabel.setBounds(area.removeFromTop(sliderHeight / 2));
     volumeSlider.setBounds(area.removeFromTop(sliderHeight));
 }
@@ -154,10 +152,10 @@ void MainComponent::resized() {
 void MainComponent::sliderValueChanged(juce::Slider* slider) {
     if (slider == &gainSlider) {
         amp.setGain((float)slider->getValue());
-    } else if (slider == &toneSlider) {
-        amp.setTone((float)slider->getValue());
-    } else if (slider == &presenceSlider) {
-        amp.setPresence((float)slider->getValue());
+    } else if (slider == &bassSlider) {
+        amp.setBass((float)slider->getValue());
+    } else if (slider == &trebleSlider) {
+        amp.setTreble((float)slider->getValue());
     } else if (slider == &volumeSlider) {
         amp.setVolume((float)slider->getValue());
     }

@@ -28,8 +28,8 @@ private:
     CabSimProcessor cab;
 
     // --- Amp Parameters ---
-    juce::Slider gainSlider, toneSlider, volumeSlider, presenceSlider;
-    juce::Label gainLabel, toneLabel, volumeLabel, presenceLabel;
+    juce::Slider gainSlider, bassSlider, trebleSlider, volumeSlider;
+    juce::Label gainLabel, bassLabel, trebleLabel, volumeLabel;
     
     // --- Cab Parameters ---
     juce::TextButton loadIRButton;
