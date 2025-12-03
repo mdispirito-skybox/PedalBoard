@@ -78,6 +78,7 @@ MainComponent::MainComponent() {
 
     setSize(450, 460);
     setAudioChannels(1, 2);
+    startTimerHz(30);
 }
 
 MainComponent::~MainComponent(){
