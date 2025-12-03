@@ -10,6 +10,7 @@ MainComponent::MainComponent() {
     addAndMakeVisible(gainLabel);
     addAndMakeVisible(bassLabel);
     addAndMakeVisible(trebleLabel);
+    addAndMakeVisible(volumeLabel);
 
     // Amp Sliders
     gainSlider.setRange(0.0, 10.0, 0.01);
