@@ -9,20 +9,24 @@ void AmpSimProcessor::prepare(double sampleRate) {
         bassFilters[i].reset();
         trebleFilters[i].reset();
 
+        dcBlockerState[i] = 0.0f;
+        lastInputSample[i] = 0.0f;
+
         preFilters[i].setCoefficients(juce::IIRCoefficients::makeHighPass(fs, 300.0f));
     }
-
 }
 
 void AmpSimProcessor::process(juce::AudioBuffer<float>& buffer) {
     const int numChannels = buffer.getNumChannels();
     const int numSamples  = buffer.getNumSamples();
 
-    const float g   = gain.load() * 10.0f; 
-    const float b   = bass.load();
-    const float tr  = treble.load();
-    const float vol = volume.load();
+    const float rawGain = gain.load();
+    const float driveAmount = 1.0f + (std::pow(rawGain, 3.0f) * 100.0f);
+    const float rawVol = volume.load();
+    const float outputLevel = std::pow(rawVol, 3.0f);
 
+    const float b = bass.load();
+    const float tr = treble.load();
     float bassGain = 0.5f + (b * 2.0f);
     float trebGain = 0.5f + (tr * 2.0f);
 
@@ -30,25 +34,35 @@ void AmpSimProcessor::process(juce::AudioBuffer<float>& buffer) {
     auto trebCoeffs = juce::IIRCoefficients::makeHighShelf(fs, 3500.0f, 0.707f, trebGain);
 
     for (int ch = 0; ch < numChannels; ++ch) {
-        bassFilters[ch].setCoefficients(bassCoeffs);
-        trebleFilters[ch].setCoefficients(trebCoeffs);
         auto* data = buffer.getWritePointer(ch);
 
+        bassFilters[ch].setCoefficients(bassCoeffs);
+        trebleFilters[ch].setCoefficients(trebCoeffs);
+
+        // PRE-FILTERING (Tighten up the DI signal)
         preFilters[ch].processSamples(data, numSamples);
 
+        // DISTORTION LOOP
         for (int i = 0; i < numSamples; ++i) {
-            float x = data[i] * g;
+            float x = data[i];
+            x *= driveAmount;
 
-            if (x > 0.0f) {
-                x = std::tanh(x); 
-            } else {
-                x = std::tanh(x * 0.8f) / 0.8f; 
-            }
+            float bias = 0.4f; 
+            float driven = x + bias;
+            x = std::tanh(driven);
+            x = x - std::tanh(bias);
 
-            data[i] = x * vol;
+            float r = 0.995f;
+            float y = x - lastInputSample[ch] + (r * dcBlockerState[ch]);
+            
+            lastInputSample[ch] = x;
+            dcBlockerState[ch] = y;
+            
+            data[i] = y;
         }
         
         bassFilters[ch].processSamples(data, numSamples);
         trebleFilters[ch].processSamples(data, numSamples);
+        juce::FloatVectorOperations::multiply(data, outputLevel, numSamples);
     }
 }
