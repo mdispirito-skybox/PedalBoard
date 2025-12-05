@@ -15,23 +15,37 @@ void FuzzProcessor::prepare(double sampleRate) {
 }
 
 void FuzzProcessor::process(juce::AudioBuffer<float>& buffer) {
-if (isBypassed.load()) return; // Pass audio through untouched
-    const int numChannels = buffer.getNumChannels();
+    if (isBypassed.load()) return;
+
+const int numChannels = buffer.getNumChannels();
     const int numSamples  = buffer.getNumSamples();
 
     float s = sustain.load();
-    float drive = 1.0f + (std::pow(s, 2.0f) * 100.0f);
+    float drive = 1.0f + (std::pow(s, 3.0f) * 500.0f);
     float vol = std::pow(volume.load(), 2.0f); 
     float t = tone.load();
 
     for (int ch = 0; ch < numChannels; ++ch) {
         auto* data = buffer.getWritePointer(ch);
         
+        // --- STEP A: CASCADING CLIPPING STAGES ---
         for (int i = 0; i < numSamples; ++i) {
-            float x = data[i] * drive;
-            data[i] = std::tanh(x) * 0.95f; 
+            float x = data[i];
+
+            // STAGE 1: The Driver
+            // Apply massive gain and soft-clip
+            x *= drive;
+            x = std::tanh(x); 
+
+            // STAGE 2: The Sustain
+            // Boost the already clipped signal by 10x (20dB) and clip it again.
+            x *= 10.0f;
+            x = std::tanh(x);
+
+            data[i] = x * 0.95f; 
         }
 
+        // --- The Tone Stack ---
         toneScratchBuffer.copyFrom(ch, 0, buffer, ch, 0, numSamples);
         lowPassFilters[ch].processSamples(buffer.getWritePointer(ch), numSamples);
         highPassFilters[ch].processSamples(toneScratchBuffer.getWritePointer(ch), numSamples);
