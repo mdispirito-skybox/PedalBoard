@@ -52,7 +52,7 @@ MainComponent::MainComponent() {
     irSelector.setSelectedId(2);
 
     // --- Fuzz ---
-    fuzzLabel.setText("FUZZ PEDAL", juce::dontSendNotification); // TODO I'd like to extract all of these out into helper functions. So the constructor calls and amp/cab setup, a fuzz setup, etc. And each of those new helper functions handles the setup for the corresponding buttons and sliders
+    fuzzLabel.setText("B I G FUZZ", juce::dontSendNotification); // TODO I'd like to extract all of these out into helper functions. So the constructor calls and amp/cab setup, a fuzz setup, etc. And each of those new helper functions handles the setup for the corresponding buttons and sliders
     fuzzLabel.setFont(juce::Font(16.0f, juce::Font::bold));
     addAndMakeVisible(fuzzLabel);
 
@@ -61,6 +61,18 @@ MainComponent::MainComponent() {
     fuzzBypassButton.setToggleState(false, juce::dontSendNotification);
     fuzzBypassButton.addListener(this);
     addAndMakeVisible(fuzzBypassButton);
+
+    fuzzSustainLabel.setText("Sustain", juce::dontSendNotification);
+    fuzzSustainLabel.setFont(juce::Font(12.0f));
+    addAndMakeVisible(fuzzSustainLabel);
+
+    fuzzToneLabel.setText("Tone", juce::dontSendNotification);
+    fuzzToneLabel.setFont(juce::Font(12.0f));
+    addAndMakeVisible(fuzzToneLabel);
+
+    fuzzVolumeLabel.setText("Level", juce::dontSendNotification);
+    fuzzVolumeLabel.setFont(juce::Font(12.0f));
+    addAndMakeVisible(fuzzVolumeLabel);
 
     fuzzSustainSlider.setRange(0.0, 1.0, 0.01);
     fuzzSustainSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
@@ -104,7 +116,7 @@ MainComponent::MainComponent() {
 
     formatManager.registerBasicFormats();
 
-    setSize(450, 460);
+    setSize(500, 700);
     setAudioChannels(1, 2);
     startTimerHz(30);
 }
@@ -143,7 +155,7 @@ void MainComponent::releaseResources() {
 }
 
 void MainComponent::paint(juce::Graphics& g) {
-    g.fillAll(juce::Colours::darkgrey);
+    g.fillAll(juce::Colours::darkgrey); 
 }
 
 void MainComponent::timerCallback() {
@@ -154,55 +166,71 @@ void MainComponent::timerCallback() {
 void MainComponent::resized() {
     auto area = getLocalBounds().reduced(20);
 
-    // Left side: Input Meter
+    // --- Side Meters ---
     inputMeter.setBounds(area.removeFromLeft(20));
     area.removeFromLeft(10);
-
-    // Right side: Output Meter
     outputMeter.setBounds(area.removeFromRight(20));
     area.removeFromRight(10);
     
-    // --- Row 1: File/Mute controls ---
-    auto topButtonArea = area.removeFromTop(40);
-    openButton.setBounds(topButtonArea.removeFromLeft(topButtonArea.getWidth() / 3).reduced(5));
-    fileInputToggle.setBounds(topButtonArea.removeFromLeft(topButtonArea.getWidth() / 2).reduced(5));
-    muteButton.setBounds(topButtonArea.reduced(5));
-    area.removeFromTop(5);
-
-    // --- Fuzz ---
-    auto fuzzArea = area.removeFromTop(80);
-    auto fuzzHeader = fuzzArea.removeFromTop(30);
-    fuzzLabel.setBounds(fuzzHeader.removeFromLeft(100));
-    fuzzBypassButton.setBounds(fuzzHeader.removeFromRight(60).reduced(2));
-
-    //Fuzz  (Sustain | Tone | Volume)
-    int sliderWidth = fuzzArea.getWidth() / 3;
-    fuzzSustainSlider.setBounds(fuzzArea.removeFromLeft(sliderWidth).reduced(2));
-    fuzzToneSlider.setBounds(fuzzArea.removeFromLeft(sliderWidth).reduced(2));
-    fuzzVolumeSlider.setBounds(fuzzArea.reduced(2));
-
-    area.removeFromTop(10);
-
-    // --- Row 2: Cab Sim Controls ---
+    // --- Row 1: Top Controls (File/Mute) ---
+    auto topArea = area.removeFromTop(40);
+    openButton.setBounds(topArea.removeFromLeft(topArea.getWidth() / 3).reduced(5));
+    fileInputToggle.setBounds(topArea.removeFromLeft(topArea.getWidth() / 2).reduced(5));
+    muteButton.setBounds(topArea.reduced(5));
+    
+    // --- Row 2: Cab Controls ---
     auto cabArea = area.removeFromTop(40);
     loadIRButton.setBounds(cabArea.removeFromLeft(cabArea.getWidth() / 3).reduced(5));
     irSelector.setBounds(cabArea.removeFromLeft(cabArea.getWidth() / 2).reduced(5));
     cabToggle.setBounds(cabArea.reduced(5));
 
     // --- Row 3: Settings ---
-    auto settingsArea = area.removeFromTop(30);
-    settingsButton.setBounds(settingsArea.withWidth(140).withCentre(settingsArea.getCentre()));
-    area.removeFromTop(20);
+    auto settingsArea = area.removeFromTop(40);
+    settingsButton.setBounds(settingsArea.withWidth(140).withCentre(settingsArea.getCentre()).reduced(5));
 
-    // --- Amp UI ---
-    auto sliderHeight = 40;
-    gainLabel.setBounds(area.removeFromTop(sliderHeight / 2));
+    area.removeFromTop(20); // Spacer
+
+    // --- Row 4: FUZZ PEDAL (Moved Down) ---
+    // Header
+    auto fuzzHeader = area.removeFromTop(30);
+    fuzzLabel.setBounds(fuzzHeader.removeFromLeft(100));
+    fuzzBypassButton.setBounds(fuzzHeader.removeFromRight(80).reduced(2));
+    
+    // Sliders + Labels (Giving them 100px height now)
+    auto fuzzControlArea = area.removeFromTop(100);
+    int knobWidth = fuzzControlArea.getWidth() / 3;
+
+    // Col 1: Sustain
+    auto f1 = fuzzControlArea.removeFromLeft(knobWidth);
+    fuzzSustainLabel.setBounds(f1.removeFromTop(20));
+    fuzzSustainSlider.setBounds(f1.reduced(5));
+
+    // Col 2: Tone
+    auto f2 = fuzzControlArea.removeFromLeft(knobWidth);
+    fuzzToneLabel.setBounds(f2.removeFromTop(20));
+    fuzzToneSlider.setBounds(f2.reduced(5));
+
+    // Col 3: Level
+    auto f3 = fuzzControlArea; // remaining
+    fuzzVolumeLabel.setBounds(f3.removeFromTop(20));
+    fuzzVolumeSlider.setBounds(f3.reduced(5));
+
+    area.removeFromTop(20); // Spacer
+
+    // --- Row 5: AMP CONTROLS (Bottom) ---
+    // Now we have plenty of space, so they won't disappear.
+    int sliderHeight = 60; 
+
+    gainLabel.setBounds(area.removeFromTop(20));
     gainSlider.setBounds(area.removeFromTop(sliderHeight));
-    bassLabel.setBounds(area.removeFromTop(sliderHeight / 2));
+    
+    bassLabel.setBounds(area.removeFromTop(20));
     bassSlider.setBounds(area.removeFromTop(sliderHeight));
-    trebleLabel.setBounds(area.removeFromTop(sliderHeight / 2));
+    
+    trebleLabel.setBounds(area.removeFromTop(20));
     trebleSlider.setBounds(area.removeFromTop(sliderHeight));
-    volumeLabel.setBounds(area.removeFromTop(sliderHeight / 2));
+    
+    volumeLabel.setBounds(area.removeFromTop(20));
     volumeSlider.setBounds(area.removeFromTop(sliderHeight));
 }
 

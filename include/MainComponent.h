@@ -64,9 +64,8 @@ private:
     // --- Fuzz UI ---
     juce::Slider fuzzSustainSlider, fuzzToneSlider, fuzzVolumeSlider;
     juce::Label  fuzzLabel;
+    juce::Label fuzzSustainLabel, fuzzToneLabel, fuzzVolumeLabel;
     juce::ToggleButton fuzzBypassButton;
-
-
 
 
 
