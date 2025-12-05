@@ -234,7 +234,7 @@ void MainComponent::resized() {
     volumeSlider.setBounds(area.removeFromTop(sliderHeight));
 }
 
-void MainComponent::sliderValueChanged(juce::Slider* slider) { // TODO Could I change this to map to a json file? Or some type of setup hashmap. So that It retrueves the corresponding function from a hash and then I don't need to keep adding if statements.
+void MainComponent::sliderValueChanged(juce::Slider* slider) {
     if (slider == &gainSlider) {
         rigEngine.setAmpGain((float)slider->getValue());
     } else if (slider == &bassSlider) {
@@ -303,7 +303,7 @@ void MainComponent::openFile()
 }
 
 void MainComponent::loadIR() {
-    transportSource.stop(); // TODO Why do we need to stop the audio while loading a new IR?
+    transportSource.stop();
     fileChooser = std::make_unique<juce::FileChooser>("Select an Impulse Response (IR) File...", juce::File{}, "*.wav;*.aif;*.aiff");
     auto flags = juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles;
 

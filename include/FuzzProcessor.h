@@ -28,4 +28,5 @@ private:
 
     std::array<juce::IIRFilter, 2> lowPassFilters;
     std::array<juce::IIRFilter, 2> highPassFilters;
+    juce::AudioBuffer<float> toneScratchBuffer;
 };
