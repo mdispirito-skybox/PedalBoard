@@ -14,23 +14,23 @@ MainComponent::MainComponent() {
 
     // Amp Sliders
     gainSlider.setRange(0.0, 10.0, 0.01);
-    gainSlider.setValue(5.0);
     gainSlider.addListener(this);
+    gainSlider.setValue(1.0);
     addAndMakeVisible(gainSlider);
 
     bassSlider.setRange(0.0, 1.0, 0.001);
-    bassSlider.setValue(0.5);
     bassSlider.addListener(this);
+    bassSlider.setValue(0.5);
     addAndMakeVisible(bassSlider);
 
     trebleSlider.setRange(0.0, 1.0, 0.001);
-    trebleSlider.setValue(0.5);
     trebleSlider.addListener(this);
+    trebleSlider.setValue(0.5);
     addAndMakeVisible(trebleSlider);
 
     volumeSlider.setRange(0.0, 1.0, 0.001);
-    volumeSlider.setValue(0.8);
     volumeSlider.addListener(this);
+    volumeSlider.setValue(0.4);
     addAndMakeVisible(volumeSlider);
 
     // --- Cab UI ---
