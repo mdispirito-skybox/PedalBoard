@@ -51,6 +51,34 @@ MainComponent::MainComponent() {
     
     irSelector.setSelectedId(2);
 
+    // --- Fuzz ---
+    fuzzLabel.setText("FUZZ PEDAL", juce::dontSendNotification); // TODO I'd like to extract all of these out into helper functions. So the constructor calls and amp/cab setup, a fuzz setup, etc. And each of those new helper functions handles the setup for the corresponding buttons and sliders
+    fuzzLabel.setFont(juce::Font(16.0f, juce::Font::bold));
+    addAndMakeVisible(fuzzLabel);
+
+    fuzzBypassButton.setButtonText("ON");
+    fuzzBypassButton.setClickingTogglesState(true);
+    fuzzBypassButton.setToggleState(false, juce::dontSendNotification);
+    fuzzBypassButton.addListener(this);
+    addAndMakeVisible(fuzzBypassButton);
+
+    fuzzSustainSlider.setRange(0.0, 1.0, 0.01);
+    fuzzSustainSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+    fuzzSustainSlider.setTextBoxStyle(juce::Slider::TextBoxLeft, false, 50, 20);
+    fuzzSustainSlider.addListener(this);
+    fuzzSustainSlider.setValue(0.5);
+    addAndMakeVisible(fuzzSustainSlider);
+
+    fuzzToneSlider.setRange(0.0, 1.0, 0.01);
+    fuzzToneSlider.addListener(this);
+    fuzzToneSlider.setValue(0.5);
+    addAndMakeVisible(fuzzToneSlider);
+
+    fuzzVolumeSlider.setRange(0.0, 1.0, 0.01);
+    fuzzVolumeSlider.addListener(this);
+    fuzzVolumeSlider.setValue(0.5);
+    addAndMakeVisible(fuzzVolumeSlider);
+
     // --- Meters ---
     addAndMakeVisible(inputMeter);
     addAndMakeVisible(outputMeter);
@@ -141,6 +169,20 @@ void MainComponent::resized() {
     muteButton.setBounds(topButtonArea.reduced(5));
     area.removeFromTop(5);
 
+    // --- Fuzz ---
+    auto fuzzArea = area.removeFromTop(80);
+    auto fuzzHeader = fuzzArea.removeFromTop(30);
+    fuzzLabel.setBounds(fuzzHeader.removeFromLeft(100));
+    fuzzBypassButton.setBounds(fuzzHeader.removeFromRight(60).reduced(2));
+
+    //Fuzz  (Sustain | Tone | Volume)
+    int sliderWidth = fuzzArea.getWidth() / 3;
+    fuzzSustainSlider.setBounds(fuzzArea.removeFromLeft(sliderWidth).reduced(2));
+    fuzzToneSlider.setBounds(fuzzArea.removeFromLeft(sliderWidth).reduced(2));
+    fuzzVolumeSlider.setBounds(fuzzArea.reduced(2));
+
+    area.removeFromTop(10);
+
     // --- Row 2: Cab Sim Controls ---
     auto cabArea = area.removeFromTop(40);
     loadIRButton.setBounds(cabArea.removeFromLeft(cabArea.getWidth() / 3).reduced(5));
@@ -164,7 +206,7 @@ void MainComponent::resized() {
     volumeSlider.setBounds(area.removeFromTop(sliderHeight));
 }
 
-void MainComponent::sliderValueChanged(juce::Slider* slider) {
+void MainComponent::sliderValueChanged(juce::Slider* slider) { // TODO Could I change this to map to a json file? Or some type of setup hashmap. So that It retrueves the corresponding function from a hash and then I don't need to keep adding if statements.
     if (slider == &gainSlider) {
         rigEngine.setAmpGain((float)slider->getValue());
     } else if (slider == &bassSlider) {
@@ -173,11 +215,19 @@ void MainComponent::sliderValueChanged(juce::Slider* slider) {
         rigEngine.setAmpTreble((float)slider->getValue());
     } else if (slider == &volumeSlider) {
         rigEngine.setAmpVolume((float)slider->getValue());
+    } else if (slider == &fuzzSustainSlider) {
+        rigEngine.setFuzzSustain((float)slider->getValue());
+    } else if (slider == &fuzzToneSlider) {
+        rigEngine.setFuzzTone((float)slider->getValue());
+    } else if (slider == &fuzzVolumeSlider) {
+        rigEngine.setFuzzVolume((float)slider->getValue());
     }
 }
 
 void MainComponent::buttonClicked(juce::Button* button) {
-    if (button == &openButton) {
+    if (button == &fuzzBypassButton) {
+        rigEngine.setFuzzBypass(!fuzzBypassButton.getToggleState());
+    } else if (button == &openButton) {
         openFile();
     } else if (button == &fileInputToggle) {
         if (fileInputToggle.getToggleState())

@@ -25,6 +25,7 @@ target_sources(GuitarAmpSim PRIVATE
     Source/AmpSimProcessor.cpp
     Source/CabSimProcessor.cpp
     Source/GuitarRigEngine.cpp
+    Source/FuzzProcessor.cpp
 )
 
 target_include_directories(GuitarAmpSim PRIVATE 

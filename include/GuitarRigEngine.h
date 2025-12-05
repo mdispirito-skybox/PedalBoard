@@ -1,6 +1,7 @@
 #pragma once
 #include "AmpSimProcessor.h"
 #include "CabSimProcessor.h"
+#include "FuzzProcessor.h"
 #include "juce_audio_basics/juce_audio_basics.h"
 
 class GuitarRigEngine {
@@ -18,10 +19,14 @@ public:
     void setAmpVolume(float v)  { amp.setVolume(v); }
 
     // --- Cab Controls ---
-    void loadCabIR(juce::AudioBuffer<float>&& ir, double rate) {
-        cab.loadImpulseResponse(std::move(ir), rate);
-    }
+    void loadCabIR(juce::AudioBuffer<float>&& ir, double rate) { cab.loadImpulseResponse(std::move(ir), rate); }
     void setCabBypass(bool bypassed) { cab.setBypassed(bypassed); }
+
+    // --- Fuzz Controls ---
+    void setFuzzSustain(float s) { fuzz.setSustain(s); }
+    void setFuzzTone(float t)    { fuzz.setTone(t); }
+    void setFuzzVolume(float v)  { fuzz.setVolume(v); }
+    void setFuzzBypass(bool b)   { fuzz.setBypassed(b); }
 
     // --- Global Controls ---
     void setMuted(bool shouldMute) { isMuted.store(shouldMute); }
@@ -30,6 +35,8 @@ private:
     // The Signal Chain Components
     AmpSimProcessor amp;
     CabSimProcessor cab;
+    
+    FuzzProcessor fuzz;
 
     std::atomic<bool> isMuted { true };
 

@@ -53,13 +53,25 @@ public:
 private:
     GuitarRigEngine rigEngine;
 
-    // --- UI Elements ---
+    // --- Amp UI Elements ---
     juce::Slider gainSlider, bassSlider, trebleSlider, volumeSlider;
     juce::Label gainLabel, bassLabel, trebleLabel, volumeLabel;
     juce::TextButton loadIRButton;
     juce::ToggleButton cabToggle;
     juce::ComboBox irSelector;
     juce::TextButton openButton;
+
+    // --- Fuzz UI ---
+    juce::Slider fuzzSustainSlider, fuzzToneSlider, fuzzVolumeSlider;
+    juce::Label  fuzzLabel;
+    juce::ToggleButton fuzzBypassButton;
+
+
+
+
+
+
+    // --- General UI Elements ---
     juce::TextButton settingsButton;
     juce::ToggleButton fileInputToggle;
     juce::ToggleButton muteButton;
