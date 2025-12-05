@@ -81,7 +81,7 @@ private:
     std::unique_ptr<juce::AudioFormatReaderSource> readerSource;
     juce::AudioTransportSource transportSource;
     std::unique_ptr<juce::FileChooser> fileChooser;
-    std::atomic<bool> isMuted { false };
+    std::atomic<bool> isMuted { true };
 
     void openFile();
     void loadIR();

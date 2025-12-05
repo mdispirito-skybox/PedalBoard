@@ -21,9 +21,9 @@ void AmpSimProcessor::process(juce::AudioBuffer<float>& buffer) {
     const int numSamples  = buffer.getNumSamples();
 
     const float rawGain = gain.load();
-    const float driveAmount = 1.0f + (std::pow(rawGain, 3.0f) * 100.0f);
+    const float driveAmount = 1.0f + (std::pow(rawGain, 3.0f) * 2.5f);
     const float rawVol = volume.load();
-    const float outputLevel = std::pow(rawVol, 3.0f);
+    const float outputLevel = std::pow(rawVol, 3.0f) * 0.75f;
 
     const float b = bass.load();
     const float tr = treble.load();
