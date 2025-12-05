@@ -1,6 +1,5 @@
 #pragma once
-#include "AmpSimProcessor.h"
-#include "CabSimProcessor.h"
+#include "GuitarRigEngine.h"
 #include "juce_audio_utils/juce_audio_utils.h"
 #include "juce_gui_basics/juce_gui_basics.h"
 #include "juce_audio_formats/juce_audio_formats.h"
@@ -49,40 +48,31 @@ public:
 
     void sliderValueChanged(juce::Slider* slider) override;
     void buttonClicked(juce::Button* button) override;
-
     void timerCallback() override;
 
 private:
-    AmpSimProcessor amp;
-    CabSimProcessor cab;
+    GuitarRigEngine rigEngine;
 
-    // --- Amp Parameters ---
+    // --- UI Elements ---
     juce::Slider gainSlider, bassSlider, trebleSlider, volumeSlider;
     juce::Label gainLabel, bassLabel, trebleLabel, volumeLabel;
-    
-    // --- Cab Parameters ---
     juce::TextButton loadIRButton;
     juce::ToggleButton cabToggle;
     juce::ComboBox irSelector;
-
-    // --- General UI  ---
     juce::TextButton openButton;
     juce::TextButton settingsButton;
     juce::ToggleButton fileInputToggle;
     juce::ToggleButton muteButton;
-
-    // --- Level Meters ---
+    
     LevelMeter inputMeter, outputMeter;
     std::atomic<float> currentInputLevel { 0.0f };
     std::atomic<float> currentOutputLevel { 0.0f };
 
-    // --- General Audio Management ---
     juce::AudioFormatManager formatManager;
     std::unique_ptr<juce::AudioFormatReaderSource> readerSource;
     juce::AudioTransportSource transportSource;
     std::unique_ptr<juce::FileChooser> fileChooser;
-    std::atomic<bool> isMuted { true };
-
+    
     void openFile();
     void loadIR();
     void loadEmbeddedIR(int index);

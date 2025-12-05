@@ -67,7 +67,7 @@ MainComponent::MainComponent() {
     addAndMakeVisible(muteButton);
     muteButton.setButtonText("MUTE");
     muteButton.setClickingTogglesState(true);
-    muteButton.setToggleState(isMuted.load(), juce::dontSendNotification);
+    muteButton.setToggleState(true, juce::dontSendNotification);
     muteButton.addListener(this);
 
     addAndMakeVisible(settingsButton);
@@ -87,17 +87,11 @@ MainComponent::~MainComponent(){
 }
 
 void MainComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate) {
-    amp.prepare(sampleRate);
-    cab.prepare(sampleRate, samplesPerBlockExpected, 2);
+    rigEngine.prepare(sampleRate, samplesPerBlockExpected, 2);
     transportSource.prepareToPlay(samplesPerBlockExpected, sampleRate);
 }
 
 void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill) {
-    if (isMuted.load()) {
-        bufferToFill.buffer->clear();
-        return;
-    }
-
     if (fileInputToggle.getToggleState() && transportSource.isPlaying()) {
         transportSource.getNextAudioBlock(bufferToFill);
     } else {
@@ -112,10 +106,7 @@ void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffer
     }
 
     currentInputLevel.store(bufferToFill.buffer->getMagnitude(bufferToFill.startSample, bufferToFill.numSamples));
-
-    amp.process(*bufferToFill.buffer);
-    cab.process(*bufferToFill.buffer);
-
+    rigEngine.process(*bufferToFill.buffer);
     currentOutputLevel.store(bufferToFill.buffer->getMagnitude(bufferToFill.startSample, bufferToFill.numSamples));
 }
 
@@ -175,13 +166,13 @@ void MainComponent::resized() {
 
 void MainComponent::sliderValueChanged(juce::Slider* slider) {
     if (slider == &gainSlider) {
-        amp.setGain((float)slider->getValue());
+        rigEngine.setAmpGain((float)slider->getValue());
     } else if (slider == &bassSlider) {
-        amp.setBass((float)slider->getValue());
+        rigEngine.setAmpBass((float)slider->getValue());
     } else if (slider == &trebleSlider) {
-        amp.setTreble((float)slider->getValue());
+        rigEngine.setAmpTreble((float)slider->getValue());
     } else if (slider == &volumeSlider) {
-        amp.setVolume((float)slider->getValue());
+        rigEngine.setAmpVolume((float)slider->getValue());
     }
 }
 
@@ -194,9 +185,9 @@ void MainComponent::buttonClicked(juce::Button* button) {
         else
             transportSource.stop();
     } else if (button == &muteButton) {
-        isMuted.store(muteButton.getToggleState());
+        rigEngine.setMuted(muteButton.getToggleState());
     } else if (button == &cabToggle) {
-        cab.setBypassed(!cabToggle.getToggleState());
+        rigEngine.setCabBypass(!cabToggle.getToggleState());
     } else if (button == &loadIRButton) {
         loadIR();
     } else if (button == &settingsButton) {
@@ -249,7 +240,7 @@ void MainComponent::loadIR() {
         if (reader != nullptr) {
             juce::AudioBuffer<float> rawIRBuffer((int)reader->numChannels, (int)reader->lengthInSamples);
             reader->read(&rawIRBuffer, 0, (int)reader->lengthInSamples, 0, true, true);
-            cab.loadImpulseResponse(std::move(rawIRBuffer), reader->sampleRate);
+            rigEngine.loadCabIR(std::move(rawIRBuffer), reader->sampleRate);
             juce::Logger::writeToLog("Loaded IR: " + file.getFileName());
         }
     });
@@ -279,7 +270,6 @@ void MainComponent::loadEmbeddedIR(int index) {
     if (reader != nullptr) {
         juce::AudioBuffer<float> rawIRBuffer((int)reader->numChannels, (int)reader->lengthInSamples);
         reader->read(&rawIRBuffer, 0, (int)reader->lengthInSamples, 0, true, true);
-        cab.loadImpulseResponse(std::move(rawIRBuffer), reader->sampleRate);
-
+        rigEngine.loadCabIR(std::move(rawIRBuffer), reader->sampleRate);
     }
 }
