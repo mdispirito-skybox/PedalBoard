@@ -33,7 +33,6 @@ public:
     void setChorusRate(float r)  { chorus.setRate(r); }
     void setChorusDepth(float d) { chorus.setDepth(d); }
     void setChorusBypass(bool b) { chorus.setBypassed(b); }
-    void setChorusVibrato(bool isVibrato) { chorus.setVibratoMode(isVibrato); }
 
     // --- Global Controls ---
     void setMuted(bool shouldMute) { isMuted.store(shouldMute); }

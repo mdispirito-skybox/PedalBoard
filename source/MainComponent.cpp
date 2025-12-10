@@ -79,7 +79,7 @@ MainComponent::MainComponent() {
 
     formatManager.registerBasicFormats();
 
-    setSize(500, 700);
+    setSize(500, 800);
     setAudioChannels(1, 2);
     startTimerHz(30);
 }
@@ -180,30 +180,24 @@ void MainComponent::resized() {
 
     area.removeFromTop(20); // Spacer
 
-    // --- CHORUS ROW ---
+    // --- CHORUS ---
     auto chorusArea = area.removeFromTop(100);
     
     auto chHeader = chorusArea.removeFromTop(20);
     chorusLabel.setBounds(chHeader.removeFromLeft(80));
-    chorusBypassButton.setBounds(chHeader.removeFromRight(60));
+    chorusBypassButton.setBounds(chHeader.removeFromRight(60).reduced(2));
 
-    // Sliders & Switch
-    int chWidth = chorusArea.getWidth() / 3;
+    int chWidth = chorusArea.getWidth() / 2;
     
-    // Col 1: Rate
     auto ch1 = chorusArea.removeFromLeft(chWidth);
     chorusRateLabel.setBounds(ch1.removeFromTop(20));
-    chorusRateSlider.setBounds(ch1.reduced(5));
+    chorusRateSlider.setBounds(ch1.reduced(5, 5));
 
-    // Col 2: Depth
-    auto ch2 = chorusArea.removeFromLeft(chWidth);
+    auto ch2 = chorusArea;
     chorusDepthLabel.setBounds(ch2.removeFromTop(20));
-    chorusDepthSlider.setBounds(ch2.reduced(5));
+    chorusDepthSlider.setBounds(ch2.reduced(5, 5));
 
-    // Col 3: Mode Switch
-    auto ch3 = chorusArea;
-    // Center the button in the remaining space
-    chorusVibratoButton.setBounds(ch3.reduced(10, 30));
+    area.removeFromTop(20);
 
     // --- Row 5: AMP CONTROLS (Bottom) ---
     // Now we have plenty of space, so they won't disappear.
@@ -272,8 +266,6 @@ void MainComponent::buttonClicked(juce::Button* button) {
         o.launchAsync();
     } else if (button == &chorusBypassButton) {
         rigEngine.setChorusBypass(!chorusBypassButton.getToggleState());
-    } else if (button == &chorusVibratoButton) {
-        rigEngine.setChorusVibrato(chorusVibratoButton.getToggleState());
     }
 }
 
@@ -383,12 +375,6 @@ void MainComponent::setupChorus() {
     chorusDepthSlider.addListener(this);
     chorusDepthSlider.setValue(0.5);
     addAndMakeVisible(chorusDepthSlider);
-
-    chorusVibratoButton.setButtonText("Vibrato Mode");
-    chorusVibratoButton.setClickingTogglesState(true);
-    chorusVibratoButton.setToggleState(false, juce::dontSendNotification);
-    chorusVibratoButton.addListener(this);
-    addAndMakeVisible(chorusVibratoButton);
 }
 
 void MainComponent::setupFuzz() {

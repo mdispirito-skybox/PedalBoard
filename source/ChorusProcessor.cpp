@@ -9,28 +9,34 @@ void ChorusProcessor::prepare(double sampleRate) {
 }
 
 void ChorusProcessor::process(juce::AudioBuffer<float>& buffer) {
-    if (isBypassed.load()) return;
+   if (isBypassed.load()) return;
 
     const int numChannels = buffer.getNumChannels();
     const int numSamples = buffer.getNumSamples();
     const int bufferLength = delayBuffer.getNumSamples();
 
     float lfoSpeed = 0.1f + (rate.load() * 2.9f); 
-    float depthMs = 1.0f + (depth.load() * 4.0f);
+    float depthMs = 1.0f + (depth.load() * 3.0f);
     float depthSamples = depthMs * (fs / 1000.0f);
     float centerDelay = depthSamples + 20.0f; 
 
-    float mixAmount = mix.load();
+    float mixAmount = 0.5f; 
 
-    for (int ch = 0; ch < numChannels; ++ch) {
-        auto* channelData = buffer.getWritePointer(ch);
-        auto* delayData = delayBuffer.getWritePointer(ch);
+    for (int i = 0; i < numSamples; ++i) {
+        float lfo = std::sin(lfoPhase);
 
-        for (int i = 0; i < numSamples; ++i) {
+        lfoPhase += (2.0f * juce::MathConstants<float>::pi * lfoSpeed) / fs;
+        if (lfoPhase >= 2.0f * juce::MathConstants<float>::pi) {
+            lfoPhase -= 2.0f * juce::MathConstants<float>::pi;
+        }
+
+        for (int ch = 0; ch < numChannels; ++ch) {
+            auto* channelData = buffer.getWritePointer(ch);
+            auto* delayData = delayBuffer.getWritePointer(ch);
+
             float drySample = channelData[i];
             delayData[writePosition] = drySample;
-            float lfo = std::sin(lfoPhase);
-            
+
             float delayTimeInSamples = centerDelay + (lfo * depthSamples);
             float readPos = (float)writePosition - delayTimeInSamples;
 
@@ -38,20 +44,11 @@ void ChorusProcessor::process(juce::AudioBuffer<float>& buffer) {
             while (readPos >= bufferLength) readPos -= bufferLength;
 
             float wetSample = getInterpolatedSample(delayBuffer, ch, readPos);
-
-            // Output Mix
-            // 0.5 Mix -> 50% Dry + 50% Wet (Chorus)
-            // 1.0 Mix -> 0% Dry + 100% Wet (Vibrato)
             channelData[i] = (drySample * (1.0f - mixAmount)) + (wetSample * mixAmount);
-
-            if (ch == 0) {
-                lfoPhase += (2.0f * juce::MathConstants<float>::pi * lfoSpeed) / fs;
-                if (lfoPhase >= 2.0f * juce::MathConstants<float>::pi) lfoPhase -= 2.0f * juce::MathConstants<float>::pi;
-                
-                writePosition++;
-                if (writePosition >= bufferLength) writePosition = 0;
-            }
         }
+        
+        writePosition++;
+        if (writePosition >= bufferLength) writePosition = 0;
     }
 }
 

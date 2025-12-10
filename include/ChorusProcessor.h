@@ -16,16 +16,10 @@ public:
     void setRate(float newRate)   { rate.store(newRate); }
     void setDepth(float newDepth) { depth.store(newDepth); }
     void setBypassed(bool b)      { isBypassed.store(b); }
-    
-    // CHANGED: Replaced Mix knob with a Mode switch
-    void setVibratoMode(bool isVibrato) { 
-        mix.store(isVibrato ? 1.0f : 0.5f); 
-    }
 
 private:
     std::atomic<float> rate       { 0.5f };
     std::atomic<float> depth      { 0.5f };
-    std::atomic<float> mix        { 0.5f };
     std::atomic<bool>  isBypassed { true };
 
     double fs = 44100.0;

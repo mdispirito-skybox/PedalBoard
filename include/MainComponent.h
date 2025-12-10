@@ -71,7 +71,6 @@ private:
     juce::Label chorusLabel, chorusRateLabel, chorusDepthLabel; 
     juce::Slider chorusRateSlider, chorusDepthSlider;
     juce::ToggleButton chorusBypassButton;
-    juce::ToggleButton chorusVibratoButton;
 
     // --- General UI Elements ---
     juce::TextButton settingsButton;
