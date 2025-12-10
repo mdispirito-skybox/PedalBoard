@@ -3,6 +3,7 @@
 #include "CabSimProcessor.h"
 #include "FuzzProcessor.h"
 #include "ChorusProcessor.h"
+#include "DelayProcessor.h"
 #include "juce_audio_basics/juce_audio_basics.h"
 
 class GuitarRigEngine {
@@ -34,16 +35,22 @@ public:
     void setChorusDepth(float d) { chorus.setDepth(d); }
     void setChorusBypass(bool b) { chorus.setBypassed(b); }
 
+    // --- Delay Controls ---
+    void setDelayTime(float t)     { delay.setTime(t); }
+    void setDelayFeedback(float f) { delay.setFeedback(f); }
+    void setDelayMix(float m)      { delay.setMix(m); }
+    void setDelayBypass(bool b)    { delay.setBypassed(b); }
+
     // --- Global Controls ---
     void setMuted(bool shouldMute) { isMuted.store(shouldMute); }
 
 private:
-    // The Signal Chain Components
     AmpSimProcessor amp;
     CabSimProcessor cab;
 
     FuzzProcessor fuzz;
     ChorusProcessor chorus;
+    DelayProcessor delay;
 
     std::atomic<bool> isMuted { true };
 

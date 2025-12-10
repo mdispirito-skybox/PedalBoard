@@ -5,6 +5,7 @@ void GuitarRigEngine::prepare(double sampleRate, int samplesPerBlock, int numCha
     amp.prepare(sampleRate);
     cab.prepare(sampleRate, samplesPerBlock, numChannels);
     chorus.prepare(sampleRate);
+    delay.prepare(sampleRate);
 }
 
 void GuitarRigEngine::process(juce::AudioBuffer<float>& buffer) {
@@ -18,5 +19,6 @@ void GuitarRigEngine::process(juce::AudioBuffer<float>& buffer) {
     amp.process(buffer);
     cab.process(buffer);
     chorus.process(buffer);
+    delay.process(buffer);
 
 }

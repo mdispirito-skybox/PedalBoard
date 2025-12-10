@@ -53,6 +53,7 @@ MainComponent::MainComponent() {
 
     setupFuzz();
     setupChorus();
+    setupDelay();
 
     // --- Meters ---
     addAndMakeVisible(inputMeter);
@@ -197,8 +198,31 @@ void MainComponent::resized() {
     chorusDepthLabel.setBounds(ch2.removeFromTop(20));
     chorusDepthSlider.setBounds(ch2.reduced(5, 5));
 
-    area.removeFromTop(20);
+    area.removeFromTop(20); // Spacer
 
+    // --- DELAY ---
+    auto delayArea = area.removeFromTop(100);
+    
+    auto dlHeader = delayArea.removeFromTop(20);
+    delayLabel.setBounds(dlHeader.removeFromLeft(120));
+    delayBypassButton.setBounds(dlHeader.removeFromRight(60).reduced(2));
+
+
+    int dlWidth = delayArea.getWidth() / 3;
+    
+    auto dl1 = delayArea.removeFromLeft(dlWidth);
+    delayTimeLabel.setBounds(dl1.removeFromTop(20));
+    delayTimeSlider.setBounds(dl1.reduced(5));
+
+    auto dl2 = delayArea.removeFromLeft(dlWidth);
+    delayFeedbackLabel.setBounds(dl2.removeFromTop(20));
+    delayFeedbackSlider.setBounds(dl2.reduced(5));
+
+    auto dl3 = delayArea;
+    delayMixLabel.setBounds(dl3.removeFromTop(20));
+    delayMixSlider.setBounds(dl3.reduced(5));
+
+    area.removeFromTop(20);
     // --- Row 5: AMP CONTROLS (Bottom) ---
     // Now we have plenty of space, so they won't disappear.
     int sliderHeight = 60; 
@@ -235,7 +259,13 @@ void MainComponent::sliderValueChanged(juce::Slider* slider) {
         rigEngine.setChorusRate(slider->getValue());
     } else if (slider == &chorusDepthSlider) {
         rigEngine.setChorusDepth(slider->getValue());
-    }
+    } else if (slider == &delayTimeSlider) {
+        rigEngine.setDelayTime(slider->getValue());
+    } else if (slider == &delayFeedbackSlider) {
+        rigEngine.setDelayFeedback(slider->getValue());
+    } else if (slider == &delayMixSlider) {
+        rigEngine.setDelayMix(slider->getValue());
+    } 
 }
 
 void MainComponent::buttonClicked(juce::Button* button) {
@@ -266,7 +296,9 @@ void MainComponent::buttonClicked(juce::Button* button) {
         o.launchAsync();
     } else if (button == &chorusBypassButton) {
         rigEngine.setChorusBypass(!chorusBypassButton.getToggleState());
-    }
+    } else if (button == &delayBypassButton) {
+        rigEngine.setDelayBypass(!delayBypassButton.getToggleState());
+    } 
 }
 
 void MainComponent::openFile()
@@ -417,4 +449,53 @@ void MainComponent::setupFuzz() {
     fuzzVolumeSlider.setValue(0.5);
     addAndMakeVisible(fuzzVolumeSlider);
 
+}
+
+void MainComponent::setupDelay() {
+    delayLabel.setText("ANALOG DELAY", juce::dontSendNotification);
+    delayLabel.setFont(juce::Font(16.0f, juce::Font::bold));
+    addAndMakeVisible(delayLabel);
+
+    delayBypassButton.setButtonText("ON");
+    delayBypassButton.setClickingTogglesState(true);
+    delayBypassButton.setToggleState(false, juce::dontSendNotification); // Default OFF
+    delayBypassButton.addListener(this);
+    addAndMakeVisible(delayBypassButton);
+    rigEngine.setDelayBypass(true); // Sync engine
+
+    // Time Knob
+    delayTimeLabel.setText("Time", juce::dontSendNotification);
+    delayTimeLabel.setFont(juce::Font(12.0f));
+    addAndMakeVisible(delayTimeLabel);
+    
+    delayTimeSlider.setRange(0.0, 1.0, 0.01);
+    delayTimeSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+    delayTimeSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
+    delayTimeSlider.addListener(this);
+    delayTimeSlider.setValue(0.3); // ~300ms default
+    addAndMakeVisible(delayTimeSlider);
+
+    // Feedback Knob
+    delayFeedbackLabel.setText("Repeats", juce::dontSendNotification);
+    delayFeedbackLabel.setFont(juce::Font(12.0f));
+    addAndMakeVisible(delayFeedbackLabel);
+
+    delayFeedbackSlider.setRange(0.0, 1.0, 0.01);
+    delayFeedbackSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+    delayFeedbackSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
+    delayFeedbackSlider.addListener(this);
+    delayFeedbackSlider.setValue(0.4);
+    addAndMakeVisible(delayFeedbackSlider);
+
+    // Mix Knob
+    delayMixLabel.setText("Mix", juce::dontSendNotification);
+    delayMixLabel.setFont(juce::Font(12.0f));
+    addAndMakeVisible(delayMixLabel);
+
+    delayMixSlider.setRange(0.0, 1.0, 0.01);
+    delayMixSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+    delayMixSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
+    delayMixSlider.addListener(this);
+    delayMixSlider.setValue(0.3);
+    addAndMakeVisible(delayMixSlider);
 }

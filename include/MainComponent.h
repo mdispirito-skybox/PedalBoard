@@ -72,6 +72,11 @@ private:
     juce::Slider chorusRateSlider, chorusDepthSlider;
     juce::ToggleButton chorusBypassButton;
 
+    // --- Delay UI ---
+    juce::Label delayLabel, delayTimeLabel, delayFeedbackLabel, delayMixLabel;
+    juce::Slider delayTimeSlider, delayFeedbackSlider, delayMixSlider;
+    juce::ToggleButton delayBypassButton;
+
     // --- General UI Elements ---
     juce::TextButton settingsButton;
     juce::ToggleButton fileInputToggle;
@@ -92,6 +97,7 @@ private:
 
     void setupChorus();
     void setupFuzz();
+    void setupDelay();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };
