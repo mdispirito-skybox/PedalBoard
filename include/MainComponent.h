@@ -92,6 +92,7 @@ private:
     void loadEmbeddedIR(int index);
 
     void setupChorus();
+    void setupFuzz();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };

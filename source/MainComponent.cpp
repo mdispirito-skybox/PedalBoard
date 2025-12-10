@@ -51,46 +51,7 @@ MainComponent::MainComponent() {
     
     irSelector.setSelectedId(2);
 
-    // --- Fuzz ---
-    fuzzLabel.setText("B I G FUZZ", juce::dontSendNotification); // TODO I'd like to extract all of these out into helper functions. So the constructor calls and amp/cab setup, a fuzz setup, etc. And each of those new helper functions handles the setup for the corresponding buttons and sliders
-    fuzzLabel.setFont(juce::Font(16.0f, juce::Font::bold));
-    addAndMakeVisible(fuzzLabel);
-
-    fuzzBypassButton.setButtonText("ON");
-    fuzzBypassButton.setClickingTogglesState(true);
-    fuzzBypassButton.setToggleState(false, juce::dontSendNotification);
-    fuzzBypassButton.addListener(this);
-    addAndMakeVisible(fuzzBypassButton);
-
-    fuzzSustainLabel.setText("Sustain", juce::dontSendNotification);
-    fuzzSustainLabel.setFont(juce::Font(12.0f));
-    addAndMakeVisible(fuzzSustainLabel);
-
-    fuzzToneLabel.setText("Tone", juce::dontSendNotification);
-    fuzzToneLabel.setFont(juce::Font(12.0f));
-    addAndMakeVisible(fuzzToneLabel);
-
-    fuzzVolumeLabel.setText("Level", juce::dontSendNotification);
-    fuzzVolumeLabel.setFont(juce::Font(12.0f));
-    addAndMakeVisible(fuzzVolumeLabel);
-
-    fuzzSustainSlider.setRange(0.0, 1.0, 0.01);
-    fuzzSustainSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
-    fuzzSustainSlider.setTextBoxStyle(juce::Slider::TextBoxLeft, false, 50, 20);
-    fuzzSustainSlider.addListener(this);
-    fuzzSustainSlider.setValue(0.5);
-    addAndMakeVisible(fuzzSustainSlider);
-
-    fuzzToneSlider.setRange(0.0, 1.0, 0.01);
-    fuzzToneSlider.addListener(this);
-    fuzzToneSlider.setValue(0.5);
-    addAndMakeVisible(fuzzToneSlider);
-
-    fuzzVolumeSlider.setRange(0.0, 1.0, 0.01);
-    fuzzVolumeSlider.addListener(this);
-    fuzzVolumeSlider.setValue(0.5);
-    addAndMakeVisible(fuzzVolumeSlider);
-
+    setupFuzz();
     setupChorus();
 
     // --- Meters ---
@@ -428,4 +389,46 @@ void MainComponent::setupChorus() {
     chorusVibratoButton.setToggleState(false, juce::dontSendNotification);
     chorusVibratoButton.addListener(this);
     addAndMakeVisible(chorusVibratoButton);
+}
+
+void MainComponent::setupFuzz() {
+    fuzzLabel.setText("B I G FUZZ", juce::dontSendNotification);
+    fuzzLabel.setFont(juce::Font(16.0f, juce::Font::bold));
+    addAndMakeVisible(fuzzLabel);
+
+    fuzzBypassButton.setButtonText("ON");
+    fuzzBypassButton.setClickingTogglesState(true);
+    fuzzBypassButton.setToggleState(false, juce::dontSendNotification);
+    fuzzBypassButton.addListener(this);
+    addAndMakeVisible(fuzzBypassButton);
+
+    fuzzSustainLabel.setText("Sustain", juce::dontSendNotification);
+    fuzzSustainLabel.setFont(juce::Font(12.0f));
+    addAndMakeVisible(fuzzSustainLabel);
+
+    fuzzToneLabel.setText("Tone", juce::dontSendNotification);
+    fuzzToneLabel.setFont(juce::Font(12.0f));
+    addAndMakeVisible(fuzzToneLabel);
+
+    fuzzVolumeLabel.setText("Level", juce::dontSendNotification);
+    fuzzVolumeLabel.setFont(juce::Font(12.0f));
+    addAndMakeVisible(fuzzVolumeLabel);
+
+    fuzzSustainSlider.setRange(0.0, 1.0, 0.01);
+    fuzzSustainSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+    fuzzSustainSlider.setTextBoxStyle(juce::Slider::TextBoxLeft, false, 50, 20);
+    fuzzSustainSlider.addListener(this);
+    fuzzSustainSlider.setValue(0.5);
+    addAndMakeVisible(fuzzSustainSlider);
+
+    fuzzToneSlider.setRange(0.0, 1.0, 0.01);
+    fuzzToneSlider.addListener(this);
+    fuzzToneSlider.setValue(0.5);
+    addAndMakeVisible(fuzzToneSlider);
+
+    fuzzVolumeSlider.setRange(0.0, 1.0, 0.01);
+    fuzzVolumeSlider.addListener(this);
+    fuzzVolumeSlider.setValue(0.5);
+    addAndMakeVisible(fuzzVolumeSlider);
+
 }
