@@ -2,6 +2,7 @@
 #include "AmpSimProcessor.h"
 #include "CabSimProcessor.h"
 #include "FuzzProcessor.h"
+#include "ChorusProcessor.h"
 #include "juce_audio_basics/juce_audio_basics.h"
 
 class GuitarRigEngine {
@@ -28,6 +29,12 @@ public:
     void setFuzzVolume(float v)  { fuzz.setVolume(v); }
     void setFuzzBypass(bool b)   { fuzz.setBypassed(b); }
 
+    // --- Chorus Controls ---
+    void setChorusRate(float r)  { chorus.setRate(r); }
+    void setChorusDepth(float d) { chorus.setDepth(d); }
+    void setChorusBypass(bool b) { chorus.setBypassed(b); }
+    void setChorusVibrato(bool isVibrato) { chorus.setVibratoMode(isVibrato); }
+
     // --- Global Controls ---
     void setMuted(bool shouldMute) { isMuted.store(shouldMute); }
 
@@ -35,8 +42,9 @@ private:
     // The Signal Chain Components
     AmpSimProcessor amp;
     CabSimProcessor cab;
-    
+
     FuzzProcessor fuzz;
+    ChorusProcessor chorus;
 
     std::atomic<bool> isMuted { true };
 

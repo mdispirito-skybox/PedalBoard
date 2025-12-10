@@ -4,6 +4,7 @@ void GuitarRigEngine::prepare(double sampleRate, int samplesPerBlock, int numCha
     fuzz.prepare(sampleRate);
     amp.prepare(sampleRate);
     cab.prepare(sampleRate, samplesPerBlock, numChannels);
+    chorus.prepare(sampleRate);
 }
 
 void GuitarRigEngine::process(juce::AudioBuffer<float>& buffer) {
@@ -16,5 +17,6 @@ void GuitarRigEngine::process(juce::AudioBuffer<float>& buffer) {
     fuzz.process(buffer);
     amp.process(buffer);
     cab.process(buffer);
+    chorus.process(buffer);
 
 }

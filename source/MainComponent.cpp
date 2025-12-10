@@ -91,6 +91,8 @@ MainComponent::MainComponent() {
     fuzzVolumeSlider.setValue(0.5);
     addAndMakeVisible(fuzzVolumeSlider);
 
+    setupChorus();
+
     // --- Meters ---
     addAndMakeVisible(inputMeter);
     addAndMakeVisible(outputMeter);
@@ -217,6 +219,31 @@ void MainComponent::resized() {
 
     area.removeFromTop(20); // Spacer
 
+    // --- CHORUS ROW ---
+    auto chorusArea = area.removeFromTop(100);
+    
+    auto chHeader = chorusArea.removeFromTop(20);
+    chorusLabel.setBounds(chHeader.removeFromLeft(80));
+    chorusBypassButton.setBounds(chHeader.removeFromRight(60));
+
+    // Sliders & Switch
+    int chWidth = chorusArea.getWidth() / 3;
+    
+    // Col 1: Rate
+    auto ch1 = chorusArea.removeFromLeft(chWidth);
+    chorusRateLabel.setBounds(ch1.removeFromTop(20));
+    chorusRateSlider.setBounds(ch1.reduced(5));
+
+    // Col 2: Depth
+    auto ch2 = chorusArea.removeFromLeft(chWidth);
+    chorusDepthLabel.setBounds(ch2.removeFromTop(20));
+    chorusDepthSlider.setBounds(ch2.reduced(5));
+
+    // Col 3: Mode Switch
+    auto ch3 = chorusArea;
+    // Center the button in the remaining space
+    chorusVibratoButton.setBounds(ch3.reduced(10, 30));
+
     // --- Row 5: AMP CONTROLS (Bottom) ---
     // Now we have plenty of space, so they won't disappear.
     int sliderHeight = 60; 
@@ -249,6 +276,10 @@ void MainComponent::sliderValueChanged(juce::Slider* slider) {
         rigEngine.setFuzzTone((float)slider->getValue());
     } else if (slider == &fuzzVolumeSlider) {
         rigEngine.setFuzzVolume((float)slider->getValue());
+    } else if (slider == &chorusRateSlider) {
+        rigEngine.setChorusRate(slider->getValue());
+    } else if (slider == &chorusDepthSlider) {
+        rigEngine.setChorusDepth(slider->getValue());
     }
 }
 
@@ -278,6 +309,10 @@ void MainComponent::buttonClicked(juce::Button* button) {
         o.resizable = false;
         o.dialogBackgroundColour = juce::Colours::darkgrey;
         o.launchAsync();
+    } else if (button == &chorusBypassButton) {
+        rigEngine.setChorusBypass(!chorusBypassButton.getToggleState());
+    } else if (button == &chorusVibratoButton) {
+        rigEngine.setChorusVibrato(chorusVibratoButton.getToggleState());
     }
 }
 
@@ -350,4 +385,47 @@ void MainComponent::loadEmbeddedIR(int index) {
         reader->read(&rawIRBuffer, 0, (int)reader->lengthInSamples, 0, true, true);
         rigEngine.loadCabIR(std::move(rawIRBuffer), reader->sampleRate);
     }
+}
+
+void MainComponent::setupChorus() {
+    chorusLabel.setText("CHORUS", juce::dontSendNotification);
+    chorusLabel.setFont(juce::Font(16.0f, juce::Font::bold));
+    addAndMakeVisible(chorusLabel);
+
+    chorusBypassButton.setButtonText("ON");
+    chorusBypassButton.setClickingTogglesState(true);
+    chorusBypassButton.setToggleState(false, juce::dontSendNotification);
+    chorusBypassButton.addListener(this);
+    addAndMakeVisible(chorusBypassButton);
+    rigEngine.setChorusBypass(true);
+
+    // Rate
+    chorusRateLabel.setText("Rate", juce::dontSendNotification);
+    chorusRateLabel.setFont(juce::Font(12.0f));
+    addAndMakeVisible(chorusRateLabel);
+    
+    chorusRateSlider.setRange(0.0, 1.0, 0.01);
+    chorusRateSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+    chorusRateSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
+    chorusRateSlider.addListener(this);
+    chorusRateSlider.setValue(0.3);
+    addAndMakeVisible(chorusRateSlider);
+
+    // Depth
+    chorusDepthLabel.setText("Depth", juce::dontSendNotification);
+    chorusDepthLabel.setFont(juce::Font(12.0f));
+    addAndMakeVisible(chorusDepthLabel);
+
+    chorusDepthSlider.setRange(0.0, 1.0, 0.01);
+    chorusDepthSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+    chorusDepthSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
+    chorusDepthSlider.addListener(this);
+    chorusDepthSlider.setValue(0.5);
+    addAndMakeVisible(chorusDepthSlider);
+
+    chorusVibratoButton.setButtonText("Vibrato Mode");
+    chorusVibratoButton.setClickingTogglesState(true);
+    chorusVibratoButton.setToggleState(false, juce::dontSendNotification);
+    chorusVibratoButton.addListener(this);
+    addAndMakeVisible(chorusVibratoButton);
 }

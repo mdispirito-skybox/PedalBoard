@@ -67,8 +67,11 @@ private:
     juce::Label fuzzSustainLabel, fuzzToneLabel, fuzzVolumeLabel;
     juce::ToggleButton fuzzBypassButton;
 
-
-
+    // --- Chorus UI ---
+    juce::Label chorusLabel, chorusRateLabel, chorusDepthLabel; 
+    juce::Slider chorusRateSlider, chorusDepthSlider;
+    juce::ToggleButton chorusBypassButton;
+    juce::ToggleButton chorusVibratoButton;
 
     // --- General UI Elements ---
     juce::TextButton settingsButton;
@@ -87,6 +90,8 @@ private:
     void openFile();
     void loadIR();
     void loadEmbeddedIR(int index);
+
+    void setupChorus();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };
