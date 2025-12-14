@@ -4,18 +4,18 @@
 MainComponent::MainComponent() {
 setLookAndFeel(&styleSheet);
 
-    // 1. Backgrounds FIRST
+    // 1. Backgrounds
     addAndMakeVisible(fuzzPedal);
     addAndMakeVisible(chorusPedal);
     addAndMakeVisible(delayPedal);
 
-    // 2. Setup Pedals
+    // 2. Setup Controls
     setupAmp();
     setupFuzz();
     setupChorus();
     setupDelay();
 
-    // 3. TOP BAR UI
+    // 3. Top Bar UI
     addAndMakeVisible(inputMeter);
     addAndMakeVisible(outputMeter);
     
@@ -213,7 +213,7 @@ void MainComponent::resized() {
     int pedalW = 150;
     int pedalH = 360;
     int gapVal = 15;
-    int labelH = 20; // Height for parameter labels
+    int labelH = 20; // Height for labels
 
     // 1. Fuzz
     auto fuzzSlot = floor.removeFromLeft(pedalW);
@@ -246,7 +246,8 @@ void MainComponent::resized() {
     auto chorArea = chorSlot.withSizeKeepingCentre(pedalW, pedalH);
     chorusPedal.setBounds(chorArea);
     
-    auto cKnobs = chorArea.removeFromTop(160).translated(0, 20);
+    // ADJUSTED HEIGHT: Reduced container height to pull labels up
+    auto cKnobs = chorArea.removeFromTop(120).translated(0, 30); 
     
     // Rate
     auto cRateArea = cKnobs.removeFromLeft(75).reduced(2);
@@ -299,18 +300,22 @@ void MainComponent::resized() {
     auto preamp = faceplate.removeFromLeft(300);
     int knobW = preamp.getWidth() / 4;
     
+    // Gain
     auto gainArea = preamp.removeFromLeft(knobW).reduced(2);
     gainLabel.setBounds(gainArea.removeFromBottom(labelH));
     gainSlider.setBounds(gainArea);
 
+    // Bass
     auto bassArea = preamp.removeFromLeft(knobW).reduced(2);
     bassLabel.setBounds(bassArea.removeFromBottom(labelH));
     bassSlider.setBounds(bassArea);
 
+    // Treble
     auto trebArea = preamp.removeFromLeft(knobW).reduced(2);
     trebleLabel.setBounds(trebArea.removeFromBottom(labelH));
     trebleSlider.setBounds(trebArea);
 
+    // Volume
     auto volArea = preamp.removeFromLeft(knobW).reduced(2);
     volumeLabel.setBounds(volArea.removeFromBottom(labelH));
     volumeSlider.setBounds(volArea);
