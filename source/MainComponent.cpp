@@ -4,51 +4,51 @@
 MainComponent::MainComponent() {
     setLookAndFeel(&styleSheet);
 
-    // Backgrounds FIRST
+    // 1. Backgrounds FIRST
     addAndMakeVisible(fuzzPedal);
     addAndMakeVisible(chorusPedal);
     addAndMakeVisible(delayPedal);
 
+    // 2. Setup Pedals
     setupAmp();
     setupFuzz();
     setupChorus();
     setupDelay();
 
-    // Top Bar UI
+    // 3. TOP BAR UI
     addAndMakeVisible(inputMeter);
     addAndMakeVisible(outputMeter);
     
-    addAndMakeVisible(playerLabel);
-    playerLabel.setText("FILE PLAYER", juce::dontSendNotification);
-    playerLabel.setFont(juce::Font(14.0f, juce::Font::bold));
-    playerLabel.setJustificationType(juce::Justification::centred);
-    
+    // Open Button
     addAndMakeVisible(openButton);
-    openButton.setButtonText("Open Audio");
+    openButton.setButtonText("OPEN FILE");
     openButton.addListener(this);
     
+    // File Toggle (Now a TextButton)
     addAndMakeVisible(fileInputToggle);
-    fileInputToggle.setButtonText("Use File");
+    fileInputToggle.setButtonText("PLAY FILE");
+    fileInputToggle.setClickingTogglesState(true); // Behaves like a switch
+    fileInputToggle.setColour(juce::TextButton::buttonOnColourId, juce::Colours::green.darker(0.5f)); // Glows green when ON
     fileInputToggle.addListener(this);
     
-    addAndMakeVisible(masterLabel);
-    masterLabel.setText("MASTER", juce::dontSendNotification);
-    masterLabel.setFont(juce::Font(14.0f, juce::Font::bold));
-    masterLabel.setJustificationType(juce::Justification::centred);
-
+    // Mute Button (Now a TextButton)
     addAndMakeVisible(muteButton);
     muteButton.setButtonText("MUTE");
-    muteButton.setClickingTogglesState(true);
+    muteButton.setClickingTogglesState(true); 
+    muteButton.setColour(juce::TextButton::buttonOnColourId, juce::Colours::red.darker(0.2f)); // Glows red when ON
+    // Default to Muted? 
+    muteButton.setToggleState(true, juce::dontSendNotification);
     muteButton.addListener(this);
     
+    // Settings
     addAndMakeVisible(settingsButton);
-    settingsButton.setButtonText("Settings");
+    settingsButton.setButtonText("SETTINGS");
     settingsButton.addListener(this);
 
     formatManager.registerBasicFormats();
     
-    // INCREASED SIZE: 1200 x 600
-    setSize(1200, 600);
+    // Size
+    setSize(1100, 600);
     setAudioChannels(1, 2);
     startTimerHz(30);
 }
@@ -202,72 +202,70 @@ void MainComponent::paint(juce::Graphics& g) {
 void MainComponent::resized() {
     auto area = getLocalBounds();
 
-    // --- 1. TOP BAR (Expanded 80px) ---
+    // --- TOP BAR ---
     auto topBar = area.removeFromTop(80);
     
-    // Meters
+    // Meters (Far Edges)
+    // Reduce margins slightly to fit everything
     inputMeter.setBounds(topBar.removeFromLeft(120).reduced(10, 25));
     outputMeter.setBounds(topBar.removeFromRight(120).reduced(10, 25));
     
+    // Fix C4834
     topBar = topBar.reduced(10, 0); 
     
-    // Center Controls Groups
-    auto centerArea = topBar;
+    // Center Controls (4 Buttons evenly spaced)
+    // We have plenty of space in the middle now.
+    // Let's center them.
+    int btnWidth = 90; 
+    int btnHeight = 30;
+    int gap = 20;
     
-    // Player Group
-    auto playerGroup = centerArea.removeFromLeft(200);
-    playerLabel.setBounds(playerGroup.removeFromTop(30));
-    int btnH = 30;
-    openButton.setBounds(playerGroup.removeFromLeft(95).withHeight(btnH));
-    fileInputToggle.setBounds(playerGroup.removeFromRight(95).withHeight(btnH));
+    // Calculate total width of button group
+    int totalBtnWidth = (btnWidth * 4) + (gap * 3);
+    
+    // Center the group in the remaining topBar area
+    auto centerArea = topBar.withWidth(totalBtnWidth).withCentre(topBar.getCentre());
+    
+    openButton.setBounds(centerArea.removeFromLeft(btnWidth).withSizeKeepingCentre(btnWidth, btnHeight));
+    centerArea.removeFromLeft(gap);
+    
+    fileInputToggle.setBounds(centerArea.removeFromLeft(btnWidth).withSizeKeepingCentre(btnWidth, btnHeight));
+    centerArea.removeFromLeft(gap);
+    
+    muteButton.setBounds(centerArea.removeFromLeft(btnWidth).withSizeKeepingCentre(btnWidth, btnHeight));
+    centerArea.removeFromLeft(gap);
+    
+    settingsButton.setBounds(centerArea.removeFromLeft(btnWidth).withSizeKeepingCentre(btnWidth, btnHeight));
 
-    centerArea.removeFromLeft(40); // Spacer
-
-    // Master Group
-    auto masterGroup = centerArea.removeFromLeft(200);
-    masterLabel.setBounds(masterGroup.removeFromTop(30));
-    muteButton.setBounds(masterGroup.removeFromLeft(60).withHeight(btnH));
-    settingsButton.setBounds(masterGroup.removeFromRight(100).withHeight(btnH));
-
-    // --- 2. FLOORBOARD ---
+    // --- FLOORBOARD ---
     auto floor = area.reduced(20); 
     int pedalW = 150;
-    int gap = 15;
-    
-    // NEW: Fixed Pedal Height (360px) centered vertically
-    int pedalH = 360;
+    int gapVal = 15;
 
     // Fuzz
-    // We grab the full slice, then center the 360px pedal inside it
-    auto fuzzSlot = floor.removeFromLeft(pedalW);
-    auto fuzzArea = fuzzSlot.withSizeKeepingCentre(pedalW, pedalH);
+    auto fuzzArea = floor.removeFromLeft(pedalW);
     fuzzPedal.setBounds(fuzzArea);
-    
     auto fKnobs = fuzzArea.removeFromTop(200); 
     fuzzToneSlider.setBounds(fKnobs.removeFromTop(80).withSizeKeepingCentre(70, 80));
     fuzzSustainSlider.setBounds(fKnobs.removeFromLeft(75).reduced(2));
     fuzzVolumeSlider.setBounds(fKnobs.removeFromRight(75).reduced(2));
     fuzzBypassButton.setBounds(fuzzArea.removeFromBottom(70).withSizeKeepingCentre(50, 60));
 
-    floor.removeFromLeft(gap);
+    floor.removeFromLeft(gapVal);
 
     // Chorus
-    auto chorSlot = floor.removeFromLeft(pedalW);
-    auto chorArea = chorSlot.withSizeKeepingCentre(pedalW, pedalH);
+    auto chorArea = floor.removeFromLeft(pedalW);
     chorusPedal.setBounds(chorArea);
-    
     auto cKnobs = chorArea.removeFromTop(160).translated(0, 20);
     chorusRateSlider.setBounds(cKnobs.removeFromLeft(75).reduced(2));
     chorusDepthSlider.setBounds(cKnobs.removeFromRight(75).reduced(2));
     chorusBypassButton.setBounds(chorArea.removeFromBottom(70).withSizeKeepingCentre(50, 60));
 
-    floor.removeFromLeft(gap);
+    floor.removeFromLeft(gapVal);
 
     // Delay
-    auto delSlot = floor.removeFromLeft(pedalW);
-    auto delArea = delSlot.withSizeKeepingCentre(pedalW, pedalH);
+    auto delArea = floor.removeFromLeft(pedalW);
     delayPedal.setBounds(delArea);
-    
     auto dKnobs = delArea.removeFromTop(200);
     auto dRow1 = dKnobs.removeFromTop(80);
     delayTimeSlider.setBounds(dRow1.removeFromLeft(75).reduced(2));
@@ -275,12 +273,10 @@ void MainComponent::resized() {
     delayFeedbackSlider.setBounds(dKnobs.removeFromTop(80).withSizeKeepingCentre(70, 80));
     delayBypassButton.setBounds(delArea.removeFromBottom(70).withSizeKeepingCentre(50, 60));
 
-    floor.removeFromLeft(gap);
+    floor.removeFromLeft(gapVal);
 
-    // Amp Head (Constrained Height too)
-    auto ampSlot = floor; // Remaining width
-    auto ampArea = ampSlot.withSizeKeepingCentre(ampSlot.getWidth(), pedalH);
-    
+    // Amp Head
+    auto ampArea = floor;
     auto faceplate = ampArea.removeFromTop(ampArea.getHeight() / 2).reduced(10);
     faceplate.removeFromTop(30); 
     

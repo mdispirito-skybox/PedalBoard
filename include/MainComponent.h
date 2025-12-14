@@ -9,14 +9,11 @@
 class LevelMeter : public juce::Component {
 public:
     void paint(juce::Graphics& g) override {
-        // Darker track for better contrast
         g.fillAll(juce::Colours::black.brighter(0.1f));
         int width = (int)((float)getWidth() * level);
         if (level > 0.9f) g.setColour(juce::Colours::red);
         else g.setColour(juce::Colours::green);
         g.fillRect(0, 0, width, getHeight());
-        
-        // Add a simple border
         g.setColour(juce::Colours::grey.darker());
         g.drawRect(getLocalBounds());
     }
@@ -50,11 +47,12 @@ private:
     GuitarRigEngine rigEngine;
     CustomLookAndFeel styleSheet;
 
-    PedalComponent fuzzPedal   { "WOOLY\nMAMMOTH", juce::Colours::darkred.darker(0.1f) };
+    // Pedal Backgrounds
+    PedalComponent fuzzPedal   { "WOOLLY\nMAMMOTH", juce::Colours::darkred.darker(0.1f) };
     PedalComponent chorusPedal { "SEA\nHORSE",      juce::Colours::skyblue.darker(0.5f) };
     PedalComponent delayPedal  { "GECKO\nECHO",     juce::Colours::olive.darker(0.1f) };
 
-    // --- Amp UI Elements ---
+    // --- Amp UI ---
     juce::Slider gainSlider, bassSlider, trebleSlider, volumeSlider;
     juce::Label gainLabel, bassLabel, trebleLabel, volumeLabel;
     juce::TextButton loadIRButton;
@@ -62,13 +60,11 @@ private:
     juce::ComboBox irSelector;
     
     // --- Top Bar Controls ---
+    // CHANGED: All buttons are now TextButtons for clear labels
     juce::TextButton openButton;
     juce::TextButton settingsButton;
-    juce::ToggleButton fileInputToggle;
-    juce::ToggleButton muteButton;
-    
-    // NEW: Section Labels
-    juce::Label playerLabel, masterLabel;
+    juce::TextButton fileInputToggle; // Changed from ToggleButton
+    juce::TextButton muteButton;      // Changed from ToggleButton
 
     // --- Fuzz UI ---
     juce::Slider fuzzSustainSlider, fuzzToneSlider, fuzzVolumeSlider;
