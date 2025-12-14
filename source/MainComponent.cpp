@@ -181,81 +181,68 @@ void MainComponent::paint(juce::Graphics& g) {
 }
 
 void MainComponent::resized() {
-    auto area = getLocalBounds();
+auto area = getLocalBounds();
 
-    // --- 1. TOP BAR (Fixed Layout) ---
+    // --- TOP BAR ---
     auto topBar = area.removeFromTop(40);
-    
-    // Left: Input Meter
     inputMeter.setBounds(topBar.removeFromLeft(150).reduced(5, 8));
-    
-    // Right: Output Meter
     outputMeter.setBounds(topBar.removeFromRight(150).reduced(5, 8));
     
-    // Center: Buttons (Use remaining space)
-    // We center the button cluster
+    // Fix C4834 warning by assigning result
     topBar = topBar.reduced(10, 0); 
-    int btnWidth = 80;
     
-    // Just stack them left-to-right in the center area
-    openButton.setBounds(topBar.removeFromLeft(btnWidth).reduced(2));
-    fileInputToggle.setBounds(topBar.removeFromLeft(btnWidth).reduced(2));
+    int btnW = 90; 
+    openButton.setBounds(topBar.removeFromLeft(btnW).reduced(2));
+    fileInputToggle.setBounds(topBar.removeFromLeft(btnW).reduced(2));
     muteButton.setBounds(topBar.removeFromLeft(60).reduced(2));
-    settingsButton.setBounds(topBar.removeFromLeft(btnWidth).reduced(2));
+    settingsButton.setBounds(topBar.removeFromLeft(100).reduced(2));
 
-    // --- 2. FLOORBOARD ---
+    // --- FLOORBOARD ---
     auto floor = area.reduced(20); 
     int pedalW = 150;
     int gap = 15;
 
-    // A. FUZZ (Slot 1)
+    // 1. FUZZ
     auto fuzzArea = floor.removeFromLeft(pedalW);
     fuzzPedal.setBounds(fuzzArea);
-    
-    // Internal Layout for Fuzz
-    // Title is drawn by PedalComponent at the bottom now (see next step)
-    auto fKnobs = fuzzArea.removeFromTop(200); // Reserve top for knobs
-    
-    // Triangle Layout
+    auto fKnobs = fuzzArea.removeFromTop(200); 
     fuzzToneSlider.setBounds(fKnobs.removeFromTop(80).withSizeKeepingCentre(70, 80));
     fuzzSustainSlider.setBounds(fKnobs.removeFromLeft(75).reduced(2));
     fuzzVolumeSlider.setBounds(fKnobs.removeFromRight(75).reduced(2));
     
-    fuzzBypassButton.setBounds(fuzzArea.removeFromBottom(60).withSizeKeepingCentre(40, 40));
+    // FIX: Increased height to 60px to fit LED + Switch
+    fuzzBypassButton.setBounds(fuzzArea.removeFromBottom(70).withSizeKeepingCentre(50, 60));
 
     floor.removeFromLeft(gap);
 
-    // B. CHORUS (Slot 2)
+    // 2. CHORUS
     auto chorArea = floor.removeFromLeft(pedalW);
     chorusPedal.setBounds(chorArea);
-    
     auto cKnobs = chorArea.removeFromTop(160).translated(0, 20);
     chorusRateSlider.setBounds(cKnobs.removeFromLeft(75).reduced(2));
     chorusDepthSlider.setBounds(cKnobs.removeFromRight(75).reduced(2));
     
-    chorusBypassButton.setBounds(chorArea.removeFromBottom(60).withSizeKeepingCentre(40, 40));
+    chorusBypassButton.setBounds(chorArea.removeFromBottom(70).withSizeKeepingCentre(50, 60));
 
     floor.removeFromLeft(gap);
 
-    // C. DELAY (Slot 3)
+    // 3. DELAY
     auto delArea = floor.removeFromLeft(pedalW);
     delayPedal.setBounds(delArea);
-    
     auto dKnobs = delArea.removeFromTop(200);
-    // V-Shape
     auto dRow1 = dKnobs.removeFromTop(80);
     delayTimeSlider.setBounds(dRow1.removeFromLeft(75).reduced(2));
     delayMixSlider.setBounds(dRow1.removeFromRight(75).reduced(2));
     delayFeedbackSlider.setBounds(dKnobs.removeFromTop(80).withSizeKeepingCentre(70, 80));
     
-    delayBypassButton.setBounds(delArea.removeFromBottom(60).withSizeKeepingCentre(40, 40));
+    delayBypassButton.setBounds(delArea.removeFromBottom(70).withSizeKeepingCentre(50, 60));
 
     floor.removeFromLeft(gap);
 
-    // D. AMP (Slot 4)
+    // 4. AMP HEAD
     auto ampArea = floor;
     auto faceplate = ampArea.removeFromTop(ampArea.getHeight() / 2).reduced(10);
-    faceplate.removeFromTop(20); // Spacing
+    faceplate.removeFromTop(20); 
     
     auto preamp = faceplate.removeFromLeft(300);
     int knobW = preamp.getWidth() / 4;
@@ -267,7 +254,8 @@ void MainComponent::resized() {
     auto cabSec = faceplate;
     irSelector.setBounds(cabSec.removeFromTop(30).reduced(5));
     loadIRButton.setBounds(cabSec.removeFromTop(30).reduced(5));
-    cabToggle.setBounds(cabSec.withSizeKeepingCentre(60, 40));
+    // Cab Toggle also gets height fix
+    cabToggle.setBounds(cabSec.withSizeKeepingCentre(60, 60));
 }
 
 void MainComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate) {

@@ -26,15 +26,11 @@ public:
         auto rw = radius * 2.0f;
         auto angle = rotaryStartAngle + sliderPos * (rotaryEndAngle - rotaryStartAngle);
 
-        // Knob Body (Matte Black)
         g.setColour(juce::Colours::black.brighter(0.1f));
         g.fillEllipse(rx, ry, rw, rw);
-        
-        // Metallic Rim
         g.setColour(juce::Colours::grey);
         g.drawEllipse(rx, ry, rw, rw, 2.0f);
 
-        // Pointer (White High-Vis Line)
         juce::Path p;
         auto pointerLength = radius * 0.7f;
         auto pointerThickness = 3.0f;
@@ -45,48 +41,78 @@ public:
         g.fillPath(p);
     }
 
-    // --- 2. METAL FOOTSWITCHES + LEDs ---
+    // --- 2. DRAW FOOTSWITCHES (Fixed Geometry) ---
     void drawToggleButton(juce::Graphics& g, juce::ToggleButton& button,
                           bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
     {
         auto bounds = button.getLocalBounds().toFloat();
         bool isOn = button.getToggleState();
+        
+        // Dynamic sizing based on component height
+        // We expect a height of ~60px to fit everything comfortably
+        float midX = bounds.getCentreX();
+        float topY = bounds.getY() + 5.0f;
 
-        // A. THE LED (Top Center)
-        float ledSize = 12.0f;
-        float ledX = bounds.getCentreX() - (ledSize / 2.0f);
-        float ledY = bounds.getY() + 2.0f;
-
-        // Color Logic: Bright Red if ON, Dim Dark Red if OFF
+        // A. THE LED (Top)
+        float ledSize = 10.0f;
+        float ledY = topY; 
+        
         juce::Colour ledCol = isOn ? juce::Colours::red : juce::Colours::darkred.darker(0.5f);
         
         g.setColour(ledCol);
-        g.fillEllipse(ledX, ledY, ledSize, ledSize);
+        g.fillEllipse(midX - ledSize/2, ledY, ledSize, ledSize);
         
-        // Glow Effect (if ON)
         if (isOn) {
             g.setColour(ledCol.withAlpha(0.4f));
-            g.fillEllipse(ledX - 4, ledY - 4, ledSize + 8, ledSize + 8);
-            // White hot center
-            g.setColour(juce::Colours::white.withAlpha(0.8f));
-            g.fillEllipse(ledX + 3, ledY + 3, 4, 4);
+            g.fillEllipse(midX - ledSize, ledY - ledSize/2, ledSize*2, ledSize*2);
+            g.setColour(juce::Colours::white.withAlpha(0.9f));
+            g.fillEllipse(midX - 2, ledY + 2, 4, 4);
         }
 
-        // B. THE METAL SWITCH (Below LED)
-        float switchSize = 35.0f;
-        auto switchRect = bounds.withSizeKeepingCentre(switchSize, switchSize).translated(0, 10);
+        // B. THE SWITCH (Bottom)
+        // Move it down so it clears the LED completely
+        float switchSize = juce::jmin(bounds.getWidth() - 10.0f, 35.0f);
+        float switchY = ledY + ledSize + 10.0f; // 10px gap below LED
+        
+        auto switchRect = juce::Rectangle<float>(midX - switchSize/2, switchY, switchSize, switchSize);
 
-        // Silver Body
+        // Body
         g.setColour(juce::Colours::silver.darker(0.1f));
         g.fillEllipse(switchRect);
         g.setColour(juce::Colours::black.withAlpha(0.5f));
         g.drawEllipse(switchRect, 1.0f);
 
-        // Inner Plunger (Chrome Gradient)
-        auto innerRect = switchRect.reduced(3);
-        juce::ColourGradient grad(juce::Colours::white, innerRect.getCentreX(), innerRect.getY(),
-                                  juce::Colours::grey, innerRect.getCentreX(), innerRect.getBottom(), false);
+        // Plunger (Visual feedback when clicked)
+        auto innerRect = switchRect.reduced(4);
+        if (shouldDrawButtonAsDown) innerRect = innerRect.reduced(2); // Press animation
+
+        juce::ColourGradient grad(juce::Colours::white, midX, innerRect.getY(),
+                                  juce::Colours::grey, midX, innerRect.getBottom(), false);
         g.setGradientFill(grad);
         g.fillEllipse(innerRect);
+    }
+    
+    // --- 3. HORIZONTAL METERS ---
+    void drawLinearSlider(juce::Graphics& g, int x, int y, int width, int height,
+                          float sliderPos, float minSliderPos, float maxSliderPos,
+                          const juce::Slider::SliderStyle, juce::Slider& slider) override
+    {
+        // Draw background track
+        g.setColour(juce::Colours::black.brighter(0.2f));
+        g.fillRect(x, y, width, height);
+        
+        // Draw fill bar
+        float fillWidth = sliderPos - (float)x;
+        if (fillWidth > 0) {
+            // Gradient: Green -> Red
+            juce::ColourGradient grad(juce::Colours::green, (float)x, (float)y,
+                                      juce::Colours::red, (float)width, (float)y, false);
+            g.setGradientFill(grad);
+            g.fillRect((float)x, (float)y, fillWidth, (float)height);
+        }
+        
+        // Outline
+        g.setColour(juce::Colours::grey.darker());
+        g.drawRect(x, y, width, height);
     }
 };
