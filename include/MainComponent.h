@@ -9,31 +9,25 @@
 class LevelMeter : public juce::Component {
 public:
     void paint(juce::Graphics& g) override {
-        g.fillAll(juce::Colours::black.brighter(0.2f));
-        
+        // Darker track for better contrast
+        g.fillAll(juce::Colours::black.brighter(0.1f));
         int width = (int)((float)getWidth() * level);
-        
-        if (level > 0.9f) {
-            g.setColour(juce::Colours::red);
-        } else {
-            g.setColour(juce::Colours::green);
-        } 
-        
+        if (level > 0.9f) g.setColour(juce::Colours::red);
+        else g.setColour(juce::Colours::green);
         g.fillRect(0, 0, width, getHeight());
-        g.setColour(juce::Colours::black.withAlpha(0.3f));
-        for (int i=0; i<getWidth(); i+=10) g.fillRect(i, 0, 1, getHeight());
+        
+        // Add a simple border
+        g.setColour(juce::Colours::grey.darker());
+        g.drawRect(getLocalBounds());
     }
     void setLevel(float newLevel) {
-        if (newLevel > level) {
-            level = newLevel;
-        } else {
-            level *= 0.9f; 
-        }
+        if (newLevel > level) level = newLevel; else level *= 0.9f; 
         repaint();
     }
 private:
     float level = 0.0f;
 };
+
 class MainComponent : public juce::AudioAppComponent,
                       public juce::Slider::Listener,
                       public juce::Button::Listener,
@@ -46,10 +40,8 @@ public:
     void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override;
     void getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill) override;
     void releaseResources() override;
-
     void paint(juce::Graphics& g) override;
     void resized() override;
-
     void sliderValueChanged(juce::Slider* slider) override;
     void buttonClicked(juce::Button* button) override;
     void timerCallback() override;
@@ -58,9 +50,9 @@ private:
     GuitarRigEngine rigEngine;
     CustomLookAndFeel styleSheet;
 
-    PedalComponent fuzzPedal   { "WOOLLY MAMMOTH", juce::Colours::darkred.darker(0.1f) };
-    PedalComponent chorusPedal { "SEA HORSE",      juce::Colours::skyblue.darker(0.5f) };
-    PedalComponent delayPedal  { "GECKO ECHO",     juce::Colours::olive.darker(0.1f) };
+    PedalComponent fuzzPedal   { "WOOLLY\nMAMMOTH", juce::Colours::darkred.darker(0.1f) };
+    PedalComponent chorusPedal { "SEA\nHORSE",      juce::Colours::skyblue.darker(0.5f) };
+    PedalComponent delayPedal  { "GECKO\nECHO",     juce::Colours::olive.darker(0.1f) };
 
     // --- Amp UI Elements ---
     juce::Slider gainSlider, bassSlider, trebleSlider, volumeSlider;
@@ -68,7 +60,15 @@ private:
     juce::TextButton loadIRButton;
     juce::ToggleButton cabToggle;
     juce::ComboBox irSelector;
+    
+    // --- Top Bar Controls ---
     juce::TextButton openButton;
+    juce::TextButton settingsButton;
+    juce::ToggleButton fileInputToggle;
+    juce::ToggleButton muteButton;
+    
+    // NEW: Section Labels
+    juce::Label playerLabel, masterLabel;
 
     // --- Fuzz UI ---
     juce::Slider fuzzSustainSlider, fuzzToneSlider, fuzzVolumeSlider;
@@ -86,11 +86,7 @@ private:
     juce::Slider delayTimeSlider, delayFeedbackSlider, delayMixSlider;
     juce::ToggleButton delayBypassButton;
 
-    // --- General UI Elements ---
-    juce::TextButton settingsButton;
-    juce::ToggleButton fileInputToggle;
-    juce::ToggleButton muteButton;
-    
+    // --- Meters ---
     LevelMeter inputMeter, outputMeter;
     std::atomic<float> currentInputLevel { 0.0f };
     std::atomic<float> currentOutputLevel { 0.0f };
@@ -107,8 +103,7 @@ private:
     void setupChorus();
     void setupFuzz();
     void setupDelay();
-
-    void setupAmp(); //TODO Might need to delete this.
+    void setupAmp(); 
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };

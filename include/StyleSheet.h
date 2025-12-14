@@ -26,11 +26,13 @@ public:
         auto rw = radius * 2.0f;
         auto angle = rotaryStartAngle + sliderPos * (rotaryEndAngle - rotaryStartAngle);
 
+        // Body
         g.setColour(juce::Colours::black.brighter(0.1f));
         g.fillEllipse(rx, ry, rw, rw);
         g.setColour(juce::Colours::grey);
         g.drawEllipse(rx, ry, rw, rw, 2.0f);
 
+        // Pointer
         juce::Path p;
         auto pointerLength = radius * 0.7f;
         auto pointerThickness = 3.0f;
@@ -41,24 +43,26 @@ public:
         g.fillPath(p);
     }
 
-    // --- 2. DRAW FOOTSWITCHES (Fixed Geometry) ---
+    // --- 2. DRAW FOOTSWITCHES (Fixed) ---
     void drawToggleButton(juce::Graphics& g, juce::ToggleButton& button,
                           bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
     {
         auto bounds = button.getLocalBounds().toFloat();
         bool isOn = button.getToggleState();
         
-        // Dynamic sizing based on component height
-        // We expect a height of ~60px to fit everything comfortably
         float midX = bounds.getCentreX();
-        float topY = bounds.getY() + 5.0f;
-
-        // A. THE LED (Top)
+        
+        // Dynamic Layout Calculation
+        float height = bounds.getHeight();
         float ledSize = 10.0f;
-        float ledY = topY; 
+        float switchSize = juce::jmin(30.0f, height * 0.5f); // Prevent switch from getting too big
         
+        // Position LED at top 20%, Switch at bottom 60%
+        float ledY = bounds.getY() + (height * 0.15f);
+        float switchY = bounds.getBottom() - switchSize - (height * 0.1f);
+
+        // A. THE LED
         juce::Colour ledCol = isOn ? juce::Colours::red : juce::Colours::darkred.darker(0.5f);
-        
         g.setColour(ledCol);
         g.fillEllipse(midX - ledSize/2, ledY, ledSize, ledSize);
         
@@ -69,11 +73,7 @@ public:
             g.fillEllipse(midX - 2, ledY + 2, 4, 4);
         }
 
-        // B. THE SWITCH (Bottom)
-        // Move it down so it clears the LED completely
-        float switchSize = juce::jmin(bounds.getWidth() - 10.0f, 35.0f);
-        float switchY = ledY + ledSize + 10.0f; // 10px gap below LED
-        
+        // B. THE METAL SWITCH
         auto switchRect = juce::Rectangle<float>(midX - switchSize/2, switchY, switchSize, switchSize);
 
         // Body
@@ -82,9 +82,9 @@ public:
         g.setColour(juce::Colours::black.withAlpha(0.5f));
         g.drawEllipse(switchRect, 1.0f);
 
-        // Plunger (Visual feedback when clicked)
-        auto innerRect = switchRect.reduced(4);
-        if (shouldDrawButtonAsDown) innerRect = innerRect.reduced(2); // Press animation
+        // Plunger
+        auto innerRect = switchRect.reduced(3);
+        if (shouldDrawButtonAsDown) innerRect = innerRect.reduced(2); 
 
         juce::ColourGradient grad(juce::Colours::white, midX, innerRect.getY(),
                                   juce::Colours::grey, midX, innerRect.getBottom(), false);
@@ -97,21 +97,16 @@ public:
                           float sliderPos, float minSliderPos, float maxSliderPos,
                           const juce::Slider::SliderStyle, juce::Slider& slider) override
     {
-        // Draw background track
         g.setColour(juce::Colours::black.brighter(0.2f));
         g.fillRect(x, y, width, height);
         
-        // Draw fill bar
         float fillWidth = sliderPos - (float)x;
         if (fillWidth > 0) {
-            // Gradient: Green -> Red
             juce::ColourGradient grad(juce::Colours::green, (float)x, (float)y,
                                       juce::Colours::red, (float)width, (float)y, false);
             g.setGradientFill(grad);
             g.fillRect((float)x, (float)y, fillWidth, (float)height);
         }
-        
-        // Outline
         g.setColour(juce::Colours::grey.darker());
         g.drawRect(x, y, width, height);
     }

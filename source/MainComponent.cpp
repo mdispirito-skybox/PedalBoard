@@ -32,7 +32,7 @@ MainComponent::MainComponent() {
 
 
     formatManager.registerBasicFormats();
-    setSize(1100, 500);
+    setSize(1200, 600);
     setAudioChannels(1, 2);
     startTimerHz(30);
 }
@@ -141,92 +141,99 @@ void MainComponent::setupDelay() {
 }
 
 void MainComponent::paint(juce::Graphics& g) {
-    // 1. Dark Floor Background
     g.fillAll(juce::Colours::black.brighter(0.12f)); 
 
-    // 2. Define Layout Areas
     auto area = getLocalBounds();
-    auto topBar = area.removeFromTop(40);
-    auto floor = area.removeFromBottom(460).reduced(20);
+    auto topBar = area.removeFromTop(80); // MATCH RESIZED HEIGHT
+    auto floor = area.removeFromBottom(520).reduced(20); // Floor takes rest
     
     int pedalW = 150;
     int gap = 15;
-    floor.removeFromLeft(pedalW + gap); // Fuzz space
-    floor.removeFromLeft(pedalW + gap); // Chorus space
-    floor.removeFromLeft(pedalW + gap); // Delay space
+    floor.removeFromLeft(pedalW + gap);
+    floor.removeFromLeft(pedalW + gap);
+    floor.removeFromLeft(pedalW + gap);
     
-    // Remaining is AMP
     auto ampArea = floor; 
-
-    // 3. DRAW AMP HEAD
     g.setColour(juce::Colours::black);
     g.fillRoundedRectangle(ampArea.toFloat(), 5.0f);
     g.setColour(juce::Colours::white.withAlpha(0.2f)); 
     g.drawRoundedRectangle(ampArea.toFloat().reduced(2), 5.0f, 2.0f);
 
-    // Gold Faceplate
     auto faceplate = ampArea.removeFromTop(ampArea.getHeight() / 2).reduced(10);
     g.setColour(juce::Colours::gold.darker(0.1f)); 
     g.fillRect(faceplate);
     
-    // Grill Cloth
+    g.setColour(juce::Colours::black);
+    g.setFont(juce::Font(20.0f, juce::Font::bold));
+    g.drawText("BRITISH 30", faceplate.removeFromTop(30), juce::Justification::centred, true);
+
     auto grill = ampArea.reduced(10);
     g.setColour(juce::Colours::darkgrey.darker(0.5f)); 
     g.fillRect(grill);
     
-    // Grill Texture
     g.setColour(juce::Colours::black.withAlpha(0.3f));
     for (int i = 0; i < grill.getWidth(); i+=4) g.drawLine(grill.getX() + i, grill.getY(), grill.getX() + i, grill.getBottom());
     for (int i = 0; i < grill.getHeight(); i+=4) g.drawLine(grill.getX(), grill.getY() + i, grill.getRight(), grill.getY() + i);
 }
 
 void MainComponent::resized() {
-auto area = getLocalBounds();
+    auto area = getLocalBounds();
 
-    // --- TOP BAR ---
-    auto topBar = area.removeFromTop(40);
-    inputMeter.setBounds(topBar.removeFromLeft(150).reduced(5, 8));
-    outputMeter.setBounds(topBar.removeFromRight(150).reduced(5, 8));
+    // --- 1. TOP BAR (Expanded) ---
+    // Increased height to 80px to fit labels and buttons nicely
+    auto topBar = area.removeFromTop(80);
     
-    // Fix C4834 warning by assigning result
-    topBar = topBar.reduced(10, 0); 
+    // Meters (Far Edges)
+    inputMeter.setBounds(topBar.removeFromLeft(120).reduced(10, 25));
+    outputMeter.setBounds(topBar.removeFromRight(120).reduced(10, 25));
     
-    int btnW = 90; 
-    openButton.setBounds(topBar.removeFromLeft(btnW).reduced(2));
-    fileInputToggle.setBounds(topBar.removeFromLeft(btnW).reduced(2));
-    muteButton.setBounds(topBar.removeFromLeft(60).reduced(2));
-    settingsButton.setBounds(topBar.removeFromLeft(100).reduced(2));
+    // Center Controls
+    // Create two groups: "Player" and "Master"
+    auto centerArea = topBar.reduced(20, 5); // Padding
+    
+    // --- Group 1: File Player ---
+    auto playerGroup = centerArea.removeFromLeft(200);
+    playerLabel.setBounds(playerGroup.removeFromTop(20)); // Label on top
+    // Buttons below
+    int btnH = 30;
+    openButton.setBounds(playerGroup.removeFromLeft(95).withHeight(btnH));
+    fileInputToggle.setBounds(playerGroup.removeFromRight(95).withHeight(btnH));
 
-    // --- FLOORBOARD ---
+    centerArea.removeFromLeft(40); // Gap
+
+    // --- Group 2: Master ---
+    auto masterGroup = centerArea.removeFromLeft(200);
+    masterLabel.setBounds(masterGroup.removeFromTop(20));
+    muteButton.setBounds(masterGroup.removeFromLeft(60).withHeight(btnH));
+    settingsButton.setBounds(masterGroup.removeFromRight(100).withHeight(btnH));
+
+    // --- 2. FLOORBOARD ---
     auto floor = area.reduced(20); 
     int pedalW = 150;
     int gap = 15;
 
-    // 1. FUZZ
+    // Fuzz
     auto fuzzArea = floor.removeFromLeft(pedalW);
     fuzzPedal.setBounds(fuzzArea);
     auto fKnobs = fuzzArea.removeFromTop(200); 
     fuzzToneSlider.setBounds(fKnobs.removeFromTop(80).withSizeKeepingCentre(70, 80));
     fuzzSustainSlider.setBounds(fKnobs.removeFromLeft(75).reduced(2));
     fuzzVolumeSlider.setBounds(fKnobs.removeFromRight(75).reduced(2));
-    
-    // FIX: Increased height to 60px to fit LED + Switch
     fuzzBypassButton.setBounds(fuzzArea.removeFromBottom(70).withSizeKeepingCentre(50, 60));
 
     floor.removeFromLeft(gap);
 
-    // 2. CHORUS
+    // Chorus
     auto chorArea = floor.removeFromLeft(pedalW);
     chorusPedal.setBounds(chorArea);
     auto cKnobs = chorArea.removeFromTop(160).translated(0, 20);
     chorusRateSlider.setBounds(cKnobs.removeFromLeft(75).reduced(2));
     chorusDepthSlider.setBounds(cKnobs.removeFromRight(75).reduced(2));
-    
     chorusBypassButton.setBounds(chorArea.removeFromBottom(70).withSizeKeepingCentre(50, 60));
 
     floor.removeFromLeft(gap);
 
-    // 3. DELAY
+    // Delay
     auto delArea = floor.removeFromLeft(pedalW);
     delayPedal.setBounds(delArea);
     auto dKnobs = delArea.removeFromTop(200);
@@ -234,15 +241,14 @@ auto area = getLocalBounds();
     delayTimeSlider.setBounds(dRow1.removeFromLeft(75).reduced(2));
     delayMixSlider.setBounds(dRow1.removeFromRight(75).reduced(2));
     delayFeedbackSlider.setBounds(dKnobs.removeFromTop(80).withSizeKeepingCentre(70, 80));
-    
     delayBypassButton.setBounds(delArea.removeFromBottom(70).withSizeKeepingCentre(50, 60));
 
     floor.removeFromLeft(gap);
 
-    // 4. AMP HEAD
+    // Amp Head
     auto ampArea = floor;
     auto faceplate = ampArea.removeFromTop(ampArea.getHeight() / 2).reduced(10);
-    faceplate.removeFromTop(20); 
+    faceplate.removeFromTop(30); 
     
     auto preamp = faceplate.removeFromLeft(300);
     int knobW = preamp.getWidth() / 4;
@@ -254,7 +260,6 @@ auto area = getLocalBounds();
     auto cabSec = faceplate;
     irSelector.setBounds(cabSec.removeFromTop(30).reduced(5));
     loadIRButton.setBounds(cabSec.removeFromTop(30).reduced(5));
-    // Cab Toggle also gets height fix
     cabToggle.setBounds(cabSec.withSizeKeepingCentre(60, 60));
 }
 
