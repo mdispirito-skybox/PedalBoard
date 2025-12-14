@@ -56,7 +56,7 @@ MainComponent::~MainComponent(){
 void MainComponent::setupAmp() {
     auto setupKnob = [this](juce::Slider& s, juce::Label& l, juce::String text, float def) {
         s.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
-        s.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0); // Hide Number Box
+        s.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0); 
         s.addListener(this);
         s.setValue(def);
         addAndMakeVisible(s);
@@ -64,6 +64,10 @@ void MainComponent::setupAmp() {
         l.setText(text, juce::dontSendNotification);
         l.setJustificationType(juce::Justification::centred);
         l.setFont(juce::Font(14.0f, juce::Font::bold));
+        
+        // NEW: Force these specific labels to be BLACK
+        l.setColour(juce::Label::textColourId, juce::Colours::black); 
+        
         addAndMakeVisible(l);
     };
 
@@ -169,12 +173,12 @@ void MainComponent::paint(juce::Graphics& g) {
     g.drawRoundedRectangle(ampArea.toFloat().reduced(2), 5.0f, 2.0f);
 
     auto faceplate = ampArea.removeFromTop(ampArea.getHeight() / 2).reduced(10);
-    g.setColour(juce::Colours::gold.darker(0.1f)); 
+    g.setColour(juce::Colours::silver.darker(0.1f)); 
     g.fillRect(faceplate);
     
     g.setColour(juce::Colours::black);
     g.setFont(juce::Font(20.0f, juce::Font::bold));
-    g.drawText("BRITISH 30", faceplate.removeFromTop(30), juce::Justification::centred, true);
+    g.drawText("MD MK-1", faceplate.removeFromTop(30), juce::Justification::centred, true);
 
     auto grill = ampArea.reduced(10);
     g.setColour(juce::Colours::darkgrey.darker(0.5f)); 
