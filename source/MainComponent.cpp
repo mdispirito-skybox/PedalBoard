@@ -2,7 +2,7 @@
 #include "BinaryData.h"
 
 MainComponent::MainComponent() {
-    setLookAndFeel(&styleSheet);
+setLookAndFeel(&styleSheet);
 
     // 1. Backgrounds FIRST
     addAndMakeVisible(fuzzPedal);
@@ -19,35 +19,29 @@ MainComponent::MainComponent() {
     addAndMakeVisible(inputMeter);
     addAndMakeVisible(outputMeter);
     
-    // Open Button
     addAndMakeVisible(openButton);
     openButton.setButtonText("OPEN FILE");
     openButton.addListener(this);
     
-    // File Toggle (Now a TextButton)
     addAndMakeVisible(fileInputToggle);
     fileInputToggle.setButtonText("PLAY FILE");
-    fileInputToggle.setClickingTogglesState(true); // Behaves like a switch
-    fileInputToggle.setColour(juce::TextButton::buttonOnColourId, juce::Colours::green.darker(0.5f)); // Glows green when ON
+    fileInputToggle.setClickingTogglesState(true); 
+    fileInputToggle.setColour(juce::TextButton::buttonOnColourId, juce::Colours::green.darker(0.5f)); 
     fileInputToggle.addListener(this);
     
-    // Mute Button (Now a TextButton)
     addAndMakeVisible(muteButton);
     muteButton.setButtonText("MUTE");
     muteButton.setClickingTogglesState(true); 
-    muteButton.setColour(juce::TextButton::buttonOnColourId, juce::Colours::red.darker(0.2f)); // Glows red when ON
-    // Default to Muted? 
+    muteButton.setColour(juce::TextButton::buttonOnColourId, juce::Colours::red.darker(0.2f)); 
     muteButton.setToggleState(true, juce::dontSendNotification);
     muteButton.addListener(this);
     
-    // Settings
     addAndMakeVisible(settingsButton);
     settingsButton.setButtonText("SETTINGS");
     settingsButton.addListener(this);
 
     formatManager.registerBasicFormats();
     
-    // Size
     setSize(1100, 600);
     setAudioChannels(1, 2);
     startTimerHz(30);
@@ -60,25 +54,30 @@ MainComponent::~MainComponent(){
 }
 
 void MainComponent::setupAmp() {
-    gainSlider.setRange(0.0, 10.0, 0.01); gainSlider.addListener(this); gainSlider.setValue(1.0); 
-    gainSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
-    gainSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
-    addAndMakeVisible(gainSlider);
+    auto setupKnob = [this](juce::Slider& s, juce::Label& l, juce::String text, float def) {
+        s.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+        s.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0); // Hide Number Box
+        s.addListener(this);
+        s.setValue(def);
+        addAndMakeVisible(s);
 
-    bassSlider.setRange(0.0, 1.0, 0.001); bassSlider.addListener(this); bassSlider.setValue(0.5); 
-    bassSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
-    bassSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
-    addAndMakeVisible(bassSlider);
+        l.setText(text, juce::dontSendNotification);
+        l.setJustificationType(juce::Justification::centred);
+        l.setFont(juce::Font(14.0f, juce::Font::bold));
+        addAndMakeVisible(l);
+    };
 
-    trebleSlider.setRange(0.0, 1.0, 0.001); trebleSlider.addListener(this); trebleSlider.setValue(0.5); 
-    trebleSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
-    trebleSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
-    addAndMakeVisible(trebleSlider);
+    gainSlider.setRange(0.0, 10.0, 0.01);
+    setupKnob(gainSlider, gainLabel, "GAIN", 1.0f);
 
-    volumeSlider.setRange(0.0, 1.0, 0.001); volumeSlider.addListener(this); volumeSlider.setValue(0.4); 
-    volumeSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
-    volumeSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
-    addAndMakeVisible(volumeSlider);
+    bassSlider.setRange(0.0, 1.0, 0.001);
+    setupKnob(bassSlider, bassLabel, "BASS", 0.5f);
+
+    trebleSlider.setRange(0.0, 1.0, 0.001);
+    setupKnob(trebleSlider, trebleLabel, "TREBLE", 0.5f);
+
+    volumeSlider.setRange(0.0, 1.0, 0.001);
+    setupKnob(volumeSlider, volumeLabel, "VOLUME", 0.4f);
 
     addAndMakeVisible(loadIRButton); loadIRButton.setButtonText("Load IR..."); loadIRButton.addListener(this);
     addAndMakeVisible(cabToggle); cabToggle.setButtonText("Cab Sim"); cabToggle.setClickingTogglesState(true); cabToggle.setToggleState(true, juce::dontSendNotification); cabToggle.addListener(this);
@@ -88,95 +87,80 @@ void MainComponent::setupAmp() {
 void MainComponent::setupFuzz() {
     fuzzBypassButton.setButtonText("Enable"); fuzzBypassButton.setClickingTogglesState(true); fuzzBypassButton.addListener(this); addAndMakeVisible(fuzzBypassButton);
     
-    fuzzSustainSlider.setRange(0.0, 1.0, 0.01);
-    fuzzSustainSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
-    fuzzSustainSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
-    fuzzSustainSlider.addListener(this);
-    fuzzSustainSlider.setValue(0.5);
-    addAndMakeVisible(fuzzSustainSlider);
+    auto setupKnob = [this](juce::Slider& s, juce::Label& l, juce::String text) {
+        s.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+        s.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
+        s.addListener(this);
+        s.setValue(0.5);
+        addAndMakeVisible(s);
+        
+        l.setText(text, juce::dontSendNotification);
+        l.setJustificationType(juce::Justification::centred);
+        l.setFont(juce::Font(13.0f, juce::Font::bold));
+        addAndMakeVisible(l);
+    };
 
-    fuzzToneSlider.setRange(0.0, 1.0, 0.01);
-    fuzzToneSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
-    fuzzToneSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
-    fuzzToneSlider.addListener(this);
-    fuzzToneSlider.setValue(0.5);
-    addAndMakeVisible(fuzzToneSlider);
-
-    fuzzVolumeSlider.setRange(0.0, 1.0, 0.01);
-    fuzzVolumeSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
-    fuzzVolumeSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
-    fuzzVolumeSlider.addListener(this);
-    fuzzVolumeSlider.setValue(0.5);
-    addAndMakeVisible(fuzzVolumeSlider);
+    fuzzSustainSlider.setRange(0.0, 1.0, 0.01); setupKnob(fuzzSustainSlider, fuzzSustainLabel, "SUSTAIN");
+    fuzzToneSlider.setRange(0.0, 1.0, 0.01);    setupKnob(fuzzToneSlider, fuzzToneLabel, "TONE");
+    fuzzVolumeSlider.setRange(0.0, 1.0, 0.01);  setupKnob(fuzzVolumeSlider, fuzzVolumeLabel, "LEVEL");
 }
 
 void MainComponent::setupChorus() {
-    chorusBypassButton.setButtonText("Enable");
-    chorusBypassButton.setClickingTogglesState(true);
-    chorusBypassButton.addListener(this);
-    addAndMakeVisible(chorusBypassButton);
+    chorusBypassButton.setButtonText("Enable"); chorusBypassButton.setClickingTogglesState(true); chorusBypassButton.addListener(this); addAndMakeVisible(chorusBypassButton);
     
-    chorusRateSlider.setRange(0.0, 1.0, 0.01);
-    chorusRateSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
-    chorusRateSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
-    chorusRateSlider.addListener(this); chorusRateSlider.setValue(0.3);
-    addAndMakeVisible(chorusRateSlider);
+    auto setupKnob = [this](juce::Slider& s, juce::Label& l, juce::String text, float def) {
+        s.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+        s.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
+        s.addListener(this);
+        s.setValue(def);
+        addAndMakeVisible(s);
+        
+        l.setText(text, juce::dontSendNotification);
+        l.setJustificationType(juce::Justification::centred);
+        l.setFont(juce::Font(13.0f, juce::Font::bold));
+        addAndMakeVisible(l);
+    };
 
-    chorusDepthSlider.setRange(0.0, 1.0, 0.01);
-    chorusDepthSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
-    chorusDepthSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
-    chorusDepthSlider.addListener(this);
-    chorusDepthSlider.setValue(0.5);
-    addAndMakeVisible(chorusDepthSlider);
+    chorusRateSlider.setRange(0.0, 1.0, 0.01);  setupKnob(chorusRateSlider, chorusRateLabel, "RATE", 0.3f);
+    chorusDepthSlider.setRange(0.0, 1.0, 0.01); setupKnob(chorusDepthSlider, chorusDepthLabel, "DEPTH", 0.5f);
 }
 
 void MainComponent::setupDelay() {
-    delayBypassButton.setButtonText("Enable");
-    delayBypassButton.setClickingTogglesState(true);
-    delayBypassButton.addListener(this);
-    addAndMakeVisible(delayBypassButton);
+    delayBypassButton.setButtonText("Enable"); delayBypassButton.setClickingTogglesState(true); delayBypassButton.addListener(this); addAndMakeVisible(delayBypassButton);
     
-    delayTimeSlider.setRange(0.0, 1.0, 0.01);
-    delayTimeSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
-    delayTimeSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
-    delayTimeSlider.addListener(this); delayTimeSlider.setValue(0.3);
-    addAndMakeVisible(delayTimeSlider);
+    auto setupKnob = [this](juce::Slider& s, juce::Label& l, juce::String text, float def) {
+        s.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+        s.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
+        s.addListener(this);
+        s.setValue(def);
+        addAndMakeVisible(s);
+        
+        l.setText(text, juce::dontSendNotification);
+        l.setJustificationType(juce::Justification::centred);
+        l.setFont(juce::Font(13.0f, juce::Font::bold));
+        addAndMakeVisible(l);
+    };
 
-    delayFeedbackSlider.setRange(0.0, 1.0, 0.01);
-    delayFeedbackSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
-    delayFeedbackSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
-    delayFeedbackSlider.addListener(this); delayFeedbackSlider.setValue(0.4);
-    addAndMakeVisible(delayFeedbackSlider);
-
-    delayMixSlider.setRange(0.0, 1.0, 0.01);
-    delayMixSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
-    delayMixSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
-    delayMixSlider.addListener(this);
-    delayMixSlider.setValue(0.3);
-    addAndMakeVisible(delayMixSlider);
+    delayTimeSlider.setRange(0.0, 1.0, 0.01);     setupKnob(delayTimeSlider, delayTimeLabel, "TIME", 0.3f);
+    delayFeedbackSlider.setRange(0.0, 1.0, 0.01); setupKnob(delayFeedbackSlider, delayFeedbackLabel, "REPEATS", 0.4f);
+    delayMixSlider.setRange(0.0, 1.0, 0.01);      setupKnob(delayMixSlider, delayMixLabel, "MIX", 0.3f);
 }
 
 void MainComponent::paint(juce::Graphics& g) {
     g.fillAll(juce::Colours::black.brighter(0.12f)); 
 
     auto area = getLocalBounds();
-    auto topBar = area.removeFromTop(80); // Skip top bar
+    auto topBar = area.removeFromTop(80); 
+    auto floor = area.removeFromBottom(520).reduced(20); 
     
-    // Floor area matches resized logic
-    auto floor = area.reduced(20); 
-    
-    // --- LAYOUT MATH (Must match resized!) ---
     int pedalW = 150;
-    int pedalH = 360; // Fixed Height for realism
+    int pedalH = 360; 
     int gap = 15;
     
-    // Remove space for the 3 pedals
     floor.removeFromLeft(pedalW + gap);
     floor.removeFromLeft(pedalW + gap);
     floor.removeFromLeft(pedalW + gap);
     
-    // --- DRAW AMP HEAD ---
-    // Amp takes remaining width, but constrained height
     auto ampArea = floor.withSizeKeepingCentre(floor.getWidth(), pedalH); 
 
     g.setColour(juce::Colours::black);
@@ -204,7 +188,7 @@ void MainComponent::paint(juce::Graphics& g) {
 void MainComponent::resized() {
     auto area = getLocalBounds();
 
-    // --- TOP BAR (Keep existing logic) ---
+    // --- TOP BAR ---
     auto topBar = area.removeFromTop(80);
     inputMeter.setBounds(topBar.removeFromLeft(120).reduced(10, 25));
     outputMeter.setBounds(topBar.removeFromRight(120).reduced(10, 25));
@@ -226,23 +210,33 @@ void MainComponent::resized() {
 
     // --- FLOORBOARD ---
     auto floor = area.reduced(20); 
-    
-    // NEW: Constrain Vertical Height
     int pedalW = 150;
-    int pedalH = 360; // Fixed Height
+    int pedalH = 360;
     int gapVal = 15;
+    int labelH = 20; // Height for parameter labels
 
     // 1. Fuzz
-    // We remove the *slot* (full height), then center the *area* (fixed height) inside it
     auto fuzzSlot = floor.removeFromLeft(pedalW);
     auto fuzzArea = fuzzSlot.withSizeKeepingCentre(pedalW, pedalH);
     fuzzPedal.setBounds(fuzzArea);
     
-    // Relative Layouts must use fuzzArea (the constrained box)
     auto fKnobs = fuzzArea.removeFromTop(200); 
-    fuzzToneSlider.setBounds(fKnobs.removeFromTop(80).withSizeKeepingCentre(70, 80));
-    fuzzSustainSlider.setBounds(fKnobs.removeFromLeft(75).reduced(2));
-    fuzzVolumeSlider.setBounds(fKnobs.removeFromRight(75).reduced(2));
+    
+    // Tone (Top Center)
+    auto fToneArea = fKnobs.removeFromTop(80).withSizeKeepingCentre(70, 80);
+    fuzzToneLabel.setBounds(fToneArea.removeFromBottom(labelH));
+    fuzzToneSlider.setBounds(fToneArea);
+
+    // Sustain (Bottom Left)
+    auto fSusArea = fKnobs.removeFromLeft(75).reduced(2);
+    fuzzSustainLabel.setBounds(fSusArea.removeFromBottom(labelH));
+    fuzzSustainSlider.setBounds(fSusArea);
+
+    // Volume (Bottom Right)
+    auto fVolArea = fKnobs.removeFromRight(75).reduced(2);
+    fuzzVolumeLabel.setBounds(fVolArea.removeFromBottom(labelH));
+    fuzzVolumeSlider.setBounds(fVolArea);
+    
     fuzzBypassButton.setBounds(fuzzArea.removeFromBottom(70).withSizeKeepingCentre(50, 60));
 
     floor.removeFromLeft(gapVal);
@@ -253,8 +247,17 @@ void MainComponent::resized() {
     chorusPedal.setBounds(chorArea);
     
     auto cKnobs = chorArea.removeFromTop(160).translated(0, 20);
-    chorusRateSlider.setBounds(cKnobs.removeFromLeft(75).reduced(2));
-    chorusDepthSlider.setBounds(cKnobs.removeFromRight(75).reduced(2));
+    
+    // Rate
+    auto cRateArea = cKnobs.removeFromLeft(75).reduced(2);
+    chorusRateLabel.setBounds(cRateArea.removeFromBottom(labelH));
+    chorusRateSlider.setBounds(cRateArea);
+
+    // Depth
+    auto cDepthArea = cKnobs.removeFromRight(75).reduced(2);
+    chorusDepthLabel.setBounds(cDepthArea.removeFromBottom(labelH));
+    chorusDepthSlider.setBounds(cDepthArea);
+    
     chorusBypassButton.setBounds(chorArea.removeFromBottom(70).withSizeKeepingCentre(50, 60));
 
     floor.removeFromLeft(gapVal);
@@ -265,16 +268,28 @@ void MainComponent::resized() {
     delayPedal.setBounds(delArea);
     
     auto dKnobs = delArea.removeFromTop(200);
+    
+    // Row 1 (Time / Mix)
     auto dRow1 = dKnobs.removeFromTop(80);
-    delayTimeSlider.setBounds(dRow1.removeFromLeft(75).reduced(2));
-    delayMixSlider.setBounds(dRow1.removeFromRight(75).reduced(2));
-    delayFeedbackSlider.setBounds(dKnobs.removeFromTop(80).withSizeKeepingCentre(70, 80));
+    
+    auto dTimeArea = dRow1.removeFromLeft(75).reduced(2);
+    delayTimeLabel.setBounds(dTimeArea.removeFromBottom(labelH));
+    delayTimeSlider.setBounds(dTimeArea);
+
+    auto dMixArea = dRow1.removeFromRight(75).reduced(2);
+    delayMixLabel.setBounds(dMixArea.removeFromBottom(labelH));
+    delayMixSlider.setBounds(dMixArea);
+
+    // Row 2 (Feedback)
+    auto dFbArea = dKnobs.removeFromTop(80).withSizeKeepingCentre(70, 80);
+    delayFeedbackLabel.setBounds(dFbArea.removeFromBottom(labelH));
+    delayFeedbackSlider.setBounds(dFbArea);
+    
     delayBypassButton.setBounds(delArea.removeFromBottom(70).withSizeKeepingCentre(50, 60));
 
     floor.removeFromLeft(gapVal);
 
     // 4. Amp Head
-    // Amp takes remaining width of the floor, but same fixed height
     auto ampSlot = floor; 
     auto ampArea = ampSlot.withSizeKeepingCentre(ampSlot.getWidth(), pedalH);
     
@@ -283,10 +298,22 @@ void MainComponent::resized() {
     
     auto preamp = faceplate.removeFromLeft(300);
     int knobW = preamp.getWidth() / 4;
-    gainSlider.setBounds(preamp.removeFromLeft(knobW));
-    bassSlider.setBounds(preamp.removeFromLeft(knobW));
-    trebleSlider.setBounds(preamp.removeFromLeft(knobW));
-    volumeSlider.setBounds(preamp.removeFromLeft(knobW));
+    
+    auto gainArea = preamp.removeFromLeft(knobW).reduced(2);
+    gainLabel.setBounds(gainArea.removeFromBottom(labelH));
+    gainSlider.setBounds(gainArea);
+
+    auto bassArea = preamp.removeFromLeft(knobW).reduced(2);
+    bassLabel.setBounds(bassArea.removeFromBottom(labelH));
+    bassSlider.setBounds(bassArea);
+
+    auto trebArea = preamp.removeFromLeft(knobW).reduced(2);
+    trebleLabel.setBounds(trebArea.removeFromBottom(labelH));
+    trebleSlider.setBounds(trebArea);
+
+    auto volArea = preamp.removeFromLeft(knobW).reduced(2);
+    volumeLabel.setBounds(volArea.removeFromBottom(labelH));
+    volumeSlider.setBounds(volArea);
     
     auto cabSec = faceplate;
     irSelector.setBounds(cabSec.removeFromTop(30).reduced(5));
