@@ -50,7 +50,7 @@ private:
     GuitarRigEngine rigEngine;
     CustomLookAndFeel styleSheet;
 
-    PedalComponent fuzzPedal   { "WOOLLY\nMAMMOTH", juce::Colours::darkred.darker(0.1f) };
+    PedalComponent fuzzPedal   { "WOOLY\nMAMMOTH", juce::Colours::darkred.darker(0.1f) };
     PedalComponent chorusPedal { "SEA\nHORSE",      juce::Colours::skyblue.darker(0.5f) };
     PedalComponent delayPedal  { "GECKO\nECHO",     juce::Colours::olive.darker(0.1f) };
 
