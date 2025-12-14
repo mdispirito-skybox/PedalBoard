@@ -4,14 +4,14 @@
 MainComponent::MainComponent() {
     setLookAndFeel(&styleSheet);
 
+    addAndMakeVisible(fuzzPedal);
+    addAndMakeVisible(chorusPedal);
+    addAndMakeVisible(delayPedal);
+
     setupAmp();
     setupFuzz();
     setupChorus();
     setupDelay();
-
-    addAndMakeVisible(fuzzPedal);
-    addAndMakeVisible(chorusPedal);
-    addAndMakeVisible(delayPedal);
 
     // --- GENERAL UI ---
     addAndMakeVisible(inputMeter);
@@ -35,91 +35,6 @@ MainComponent::MainComponent() {
     setSize(1100, 500);
     setAudioChannels(1, 2);
     startTimerHz(30);
-
-
-
-
-
-
-    /*
-    gainLabel.setText("Gain", juce::dontSendNotification);
-    bassLabel.setText("Bass", juce::dontSendNotification);
-    trebleLabel.setText("Treble", juce::dontSendNotification);
-    volumeLabel.setText("Volume", juce::dontSendNotification);
-
-    addAndMakeVisible(gainLabel);
-    addAndMakeVisible(bassLabel);
-    addAndMakeVisible(trebleLabel);
-    addAndMakeVisible(volumeLabel);
-
-    // Amp Sliders
-    gainSlider.setRange(0.0, 10.0, 0.01);
-    gainSlider.addListener(this);
-    gainSlider.setValue(1.0);
-    addAndMakeVisible(gainSlider);
-
-    bassSlider.setRange(0.0, 1.0, 0.001);
-    bassSlider.addListener(this);
-    bassSlider.setValue(0.5);
-    addAndMakeVisible(bassSlider);
-
-    trebleSlider.setRange(0.0, 1.0, 0.001);
-    trebleSlider.addListener(this);
-    trebleSlider.setValue(0.5);
-    addAndMakeVisible(trebleSlider);
-
-    volumeSlider.setRange(0.0, 1.0, 0.001);
-    volumeSlider.addListener(this);
-    volumeSlider.setValue(0.4);
-    addAndMakeVisible(volumeSlider);
-
-    // --- Cab UI ---
-    addAndMakeVisible(loadIRButton);
-    loadIRButton.setButtonText("Load IR File...");
-    loadIRButton.addListener(this);
-
-    addAndMakeVisible(cabToggle);
-    cabToggle.setButtonText("Cab Sim ON");
-    cabToggle.setClickingTogglesState(true);
-    cabToggle.setToggleState(true, juce::dontSendNotification); // Start ON by default
-    cabToggle.addListener(this);
-
-    addAndMakeVisible(irSelector);
-    irSelector.addItem("ORANGE", 1);
-    irSelector.addItem("VOX", 2);
-    irSelector.onChange = [this] { loadEmbeddedIR(irSelector.getSelectedId()); };
-    
-    irSelector.setSelectedId(2);
-
-    // --- Meters ---
-    addAndMakeVisible(inputMeter);
-    addAndMakeVisible(outputMeter);
-
-    // --- Audio Playback ---
-    addAndMakeVisible(openButton);
-    openButton.setButtonText("Open Audio File...");
-    openButton.addListener(this);
-
-    addAndMakeVisible(fileInputToggle);
-    fileInputToggle.setButtonText("Use File Input");
-    fileInputToggle.addListener(this);
-
-    addAndMakeVisible(muteButton);
-    muteButton.setButtonText("MUTE");
-    muteButton.setClickingTogglesState(true);
-    muteButton.setToggleState(true, juce::dontSendNotification);
-    muteButton.addListener(this);
-
-    addAndMakeVisible(settingsButton);
-    settingsButton.setButtonText("Audio Settings...");
-    settingsButton.addListener(this);
-
-    formatManager.registerBasicFormats();
-
-    setSize(500, 800);
-    setAudioChannels(1, 2);
-    startTimerHz(30);
-    */
 }
 
 MainComponent::~MainComponent(){
@@ -229,96 +144,84 @@ void MainComponent::paint(juce::Graphics& g) {
     // 1. Dark Floor Background
     g.fillAll(juce::Colours::black.brighter(0.12f)); 
 
-    // 2. Calculate Amp Area (Must match resized logic!)
+    // 2. Define Layout Areas
     auto area = getLocalBounds();
     auto topBar = area.removeFromTop(40);
     auto floor = area.removeFromBottom(460).reduced(20);
     
-    // Pedals take up space...
     int pedalW = 150;
     int gap = 15;
-    floor.removeFromLeft(pedalW + gap); // Fuzz
-    floor.removeFromLeft(pedalW + gap); // Chorus
-    floor.removeFromLeft(pedalW + gap); // Delay
+    floor.removeFromLeft(pedalW + gap); // Fuzz space
+    floor.removeFromLeft(pedalW + gap); // Chorus space
+    floor.removeFromLeft(pedalW + gap); // Delay space
     
     // Remaining is AMP
-    auto ampArea = floor; // The rest of the width
+    auto ampArea = floor; 
 
     // 3. DRAW AMP HEAD
-    // A. Tolex Box
     g.setColour(juce::Colours::black);
     g.fillRoundedRectangle(ampArea.toFloat(), 5.0f);
-    g.setColour(juce::Colours::white.withAlpha(0.2f)); // White piping
+    g.setColour(juce::Colours::white.withAlpha(0.2f)); 
     g.drawRoundedRectangle(ampArea.toFloat().reduced(2), 5.0f, 2.0f);
 
-    // B. Gold Faceplate (Top Half)
+    // Gold Faceplate
     auto faceplate = ampArea.removeFromTop(ampArea.getHeight() / 2).reduced(10);
     g.setColour(juce::Colours::gold.darker(0.1f)); 
     g.fillRect(faceplate);
     
-    // Faceplate Text
-    g.setColour(juce::Colours::black);
-    g.setFont(juce::Font(20.0f, juce::Font::bold));
-    g.drawText("BRITISH 30", faceplate.removeFromTop(30), juce::Justification::centred, true);
-
-    // C. Grill Cloth (Bottom Half)
+    // Grill Cloth
     auto grill = ampArea.reduced(10);
-    g.setColour(juce::Colours::darkgrey.darker(0.5f)); // Base color
+    g.setColour(juce::Colours::darkgrey.darker(0.5f)); 
     g.fillRect(grill);
     
-    // Grill Texture (Crosshatch)
+    // Grill Texture
     g.setColour(juce::Colours::black.withAlpha(0.3f));
     for (int i = 0; i < grill.getWidth(); i+=4) g.drawLine(grill.getX() + i, grill.getY(), grill.getX() + i, grill.getBottom());
     for (int i = 0; i < grill.getHeight(); i+=4) g.drawLine(grill.getX(), grill.getY() + i, grill.getRight(), grill.getY() + i);
-    
-    // Logo on Grill
-    g.setColour(juce::Colours::white);
-    g.setFont(juce::Font(16.0f, juce::Font::italic));
-    g.drawText("Classic", grill.removeFromBottom(30).removeFromRight(60), juce::Justification::centred, true);
 }
 
 void MainComponent::resized() {
     auto area = getLocalBounds();
 
-    // --- 1. TOP BAR (Horizontal Layout) ---
+    // --- 1. TOP BAR (Fixed Layout) ---
     auto topBar = area.removeFromTop(40);
-    // Input Meter (Far Left, Wide)
-    inputMeter.setBounds(topBar.removeFromLeft(200).reduced(5));
     
-    // Output Meter (Far Right, Wide)
-    outputMeter.setBounds(topBar.removeFromRight(200).reduced(5));
+    // Left: Input Meter
+    inputMeter.setBounds(topBar.removeFromLeft(150).reduced(5, 8));
     
-    // Buttons (Center)
-    topBar.reduced(20, 0); // Margin
-    int btnW = 100;
-    openButton.setBounds(topBar.removeFromLeft(btnW).reduced(2));
-    fileInputToggle.setBounds(topBar.removeFromLeft(btnW).reduced(2));
+    // Right: Output Meter
+    outputMeter.setBounds(topBar.removeFromRight(150).reduced(5, 8));
+    
+    // Center: Buttons (Use remaining space)
+    // We center the button cluster
+    topBar = topBar.reduced(10, 0); 
+    int btnWidth = 80;
+    
+    // Just stack them left-to-right in the center area
+    openButton.setBounds(topBar.removeFromLeft(btnWidth).reduced(2));
+    fileInputToggle.setBounds(topBar.removeFromLeft(btnWidth).reduced(2));
     muteButton.setBounds(topBar.removeFromLeft(60).reduced(2));
-    settingsButton.setBounds(topBar.removeFromLeft(120).reduced(2));
+    settingsButton.setBounds(topBar.removeFromLeft(btnWidth).reduced(2));
 
     // --- 2. FLOORBOARD ---
-    auto floor = area.reduced(20); // Margins from window edge
+    auto floor = area.reduced(20); 
     int pedalW = 150;
     int gap = 15;
 
     // A. FUZZ (Slot 1)
     auto fuzzArea = floor.removeFromLeft(pedalW);
-    fuzzPedal.setBounds(fuzzArea); // Background
+    fuzzPedal.setBounds(fuzzArea);
     
-    // Fuzz Controls (Relative to fuzzArea)
-    auto fTop = fuzzArea.removeFromTop(40); // Title space
-    auto fSwitch = fuzzArea.removeFromBottom(60); // Switch space
+    // Internal Layout for Fuzz
+    // Title is drawn by PedalComponent at the bottom now (see next step)
+    auto fKnobs = fuzzArea.removeFromTop(200); // Reserve top for knobs
     
-    // Knobs (Triangle)
-    int kw = 70;
-    auto fKnobs = fuzzArea;
-    // Top Knob (Tone)
-    fuzzToneSlider.setBounds(fKnobs.removeFromTop(80).withSizeKeepingCentre(kw, 80));
-    // Bottom Knobs (Sustain, Vol)
-    fuzzSustainSlider.setBounds(fKnobs.removeFromLeft(kw).reduced(5));
-    fuzzVolumeSlider.setBounds(fKnobs.removeFromRight(kw).reduced(5));
+    // Triangle Layout
+    fuzzToneSlider.setBounds(fKnobs.removeFromTop(80).withSizeKeepingCentre(70, 80));
+    fuzzSustainSlider.setBounds(fKnobs.removeFromLeft(75).reduced(2));
+    fuzzVolumeSlider.setBounds(fKnobs.removeFromRight(75).reduced(2));
     
-    fuzzBypassButton.setBounds(fSwitch.withSizeKeepingCentre(40, 40));
+    fuzzBypassButton.setBounds(fuzzArea.removeFromBottom(60).withSizeKeepingCentre(40, 40));
 
     floor.removeFromLeft(gap);
 
@@ -326,14 +229,11 @@ void MainComponent::resized() {
     auto chorArea = floor.removeFromLeft(pedalW);
     chorusPedal.setBounds(chorArea);
     
-    auto cTop = chorArea.removeFromTop(40);
-    auto cSwitch = chorArea.removeFromBottom(60);
+    auto cKnobs = chorArea.removeFromTop(160).translated(0, 20);
+    chorusRateSlider.setBounds(cKnobs.removeFromLeft(75).reduced(2));
+    chorusDepthSlider.setBounds(cKnobs.removeFromRight(75).reduced(2));
     
-    // Knobs (Side by Side)
-    chorusRateSlider.setBounds(chorArea.removeFromLeft(75).reduced(5).withHeight(80).translated(0, 30));
-    chorusDepthSlider.setBounds(chorArea.removeFromRight(75).reduced(5).withHeight(80).translated(0, 30));
-    
-    chorusBypassButton.setBounds(cSwitch.withSizeKeepingCentre(40, 40));
+    chorusBypassButton.setBounds(chorArea.removeFromBottom(60).withSizeKeepingCentre(40, 40));
 
     floor.removeFromLeft(gap);
 
@@ -341,42 +241,33 @@ void MainComponent::resized() {
     auto delArea = floor.removeFromLeft(pedalW);
     delayPedal.setBounds(delArea);
     
-    auto dTop = delArea.removeFromTop(40);
-    auto dSwitch = delArea.removeFromBottom(60);
+    auto dKnobs = delArea.removeFromTop(200);
+    // V-Shape
+    auto dRow1 = dKnobs.removeFromTop(80);
+    delayTimeSlider.setBounds(dRow1.removeFromLeft(75).reduced(2));
+    delayMixSlider.setBounds(dRow1.removeFromRight(75).reduced(2));
+    delayFeedbackSlider.setBounds(dKnobs.removeFromTop(80).withSizeKeepingCentre(70, 80));
     
-    // Knobs (V Shape)
-    // Top Left/Right
-    auto dRow1 = delArea.removeFromTop(80);
-    delayTimeSlider.setBounds(dRow1.removeFromLeft(75).reduced(5));
-    delayMixSlider.setBounds(dRow1.removeFromRight(75).reduced(5));
-    // Bottom Center
-    delayFeedbackSlider.setBounds(delArea.removeFromTop(80).withSizeKeepingCentre(70, 80));
-    
-    delayBypassButton.setBounds(dSwitch.withSizeKeepingCentre(40, 40));
+    delayBypassButton.setBounds(delArea.removeFromBottom(60).withSizeKeepingCentre(40, 40));
 
     floor.removeFromLeft(gap);
 
-    // D. AMP HEAD (Slot 4 - The Rest)
-    auto ampArea = floor; // Takes remaining width
-    // The Amp Head graphics are drawn in paint()
-    
-    // We need to place sliders on the Faceplate area
+    // D. AMP (Slot 4)
+    auto ampArea = floor;
     auto faceplate = ampArea.removeFromTop(ampArea.getHeight() / 2).reduced(10);
-    faceplate.removeFromTop(30); // Skip Title
+    faceplate.removeFromTop(20); // Spacing
     
-    // Left Side: 4 Knobs
     auto preamp = faceplate.removeFromLeft(300);
     int knobW = preamp.getWidth() / 4;
-    gainSlider.setBounds(preamp.removeFromLeft(knobW).reduced(2));
-    bassSlider.setBounds(preamp.removeFromLeft(knobW).reduced(2));
-    trebleSlider.setBounds(preamp.removeFromLeft(knobW).reduced(2));
-    volumeSlider.setBounds(preamp.removeFromLeft(knobW).reduced(2));
+    gainSlider.setBounds(preamp.removeFromLeft(knobW));
+    bassSlider.setBounds(preamp.removeFromLeft(knobW));
+    trebleSlider.setBounds(preamp.removeFromLeft(knobW));
+    volumeSlider.setBounds(preamp.removeFromLeft(knobW));
     
-    // Right Side: Cab Controls
     auto cabSec = faceplate;
     irSelector.setBounds(cabSec.removeFromTop(30).reduced(5));
     loadIRButton.setBounds(cabSec.removeFromTop(30).reduced(5));
-    cabToggle.setBounds(cabSec.reduced(10));
+    cabToggle.setBounds(cabSec.withSizeKeepingCentre(60, 40));
 }
 
 void MainComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate) {
