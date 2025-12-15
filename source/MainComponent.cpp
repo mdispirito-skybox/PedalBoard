@@ -408,7 +408,7 @@ void MainComponent::buttonClicked(juce::Button* button) {
     } else if (button == &loadIRButton) {
         loadIR();
     } else if (button == &settingsButton) {
-        auto* settingsPanel = new juce::AudioDeviceSelectorComponent(deviceManager, 0, 0, 0, 2, false, false, true, false);
+        auto* settingsPanel = new juce::AudioDeviceSelectorComponent(deviceManager, 0, 2, 0, 2, false, false, true, false);
         settingsPanel->setSize(400, 300);
         juce::DialogWindow::LaunchOptions o;
         o.content.setOwned(settingsPanel);
